@@ -2,15 +2,11 @@
 @Author: lijun
 @Date: 2020-05-15 16:48:56
 @LastEditors: lijun
-@LastEditTime: 2020-05-15 18:43:36
+@LastEditTime: 2020-05-20 17:29:03
 @Description: hang zhou test ,analyse num error data,copy error image to train
 '''
-import sys
-sys.path.append('..')
 from util.read_file import Readcsv
 from util.deal_file import Dealfile
-# from project.util.read_csv import Readcsv
-# from project.util.deal_file import Dealfile
 if __name__ == "__main__":
     csv_path = r'D:\cbv7700\bin\result_all.csv'
     target_path = r'Y:\data\num\unsb'
