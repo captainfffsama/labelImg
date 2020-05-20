@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2020-05-18 11:03:59
 @LastEditors: lijun
-@LastEditTime: 2020-05-20 15:56:51
+@LastEditTime: 2020-05-18 13:34:30
 @Description: this file tailor img
 '''
 import comm_function
