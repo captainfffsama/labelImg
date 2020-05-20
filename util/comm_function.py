@@ -16,7 +16,7 @@ def md5sum(filename:'str'):
         filename ([str]): [description]
 
     Returns:
-        [type]: [description]
+        [type]: [return md5]
     """    
     m = hashlib.md5()
     m.update(filename.tostring())
