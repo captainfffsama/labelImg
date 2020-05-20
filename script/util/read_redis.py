@@ -2,10 +2,13 @@
 @Author: lijun
 @Date: 2020-05-18 18:42:26
 @LastEditors: lijun
-@LastEditTime: 2020-05-20 16:56:05
+@LastEditTime: 2020-05-20 15:46:22
 @Description: file content
 '''
+import binascii
 import redis
+import codecs
+import chardet
 class Redis(object):
     """[summary]
 
