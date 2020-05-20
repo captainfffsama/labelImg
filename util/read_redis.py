@@ -5,7 +5,6 @@
 @LastEditTime: 2020-05-20 13:10:20
 @Description: file content
 '''
-# -*- coding: UTF-8 -*-
 import binascii
 import redis
 import codecs
