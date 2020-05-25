@@ -2,13 +2,13 @@
 @Author: lijun
 @Date: 2020-05-18 11:03:59
 @LastEditors: lijun
-@LastEditTime: 2020-05-18 13:34:30
+@LastEditTime: 2020-05-24 01:57:13
 @Description: this file tailor img
 '''
-import comm_function
+from util import comm_function
 import os
 from cv2 import cv2 as cv
-from read_file import Readxml
+from util.read_file import Readxml
 import glob
 class Tailor(object):
     """[summary]
@@ -37,12 +37,17 @@ class Tailor(object):
             roi_img = img[bndbox[1]:bndbox[3],bndbox[0]:bndbox[2]]
             md5 = comm_function.md5sum(roi_img)
             save_path = os.path.join(target_path,str(md5))
-            cv.imwrite(save_path+'_'+name+'.jpg',roi_img)
+            save_path = str(save_path)+'_'+str(name)+'.jpg'
+            print(save_path)
+            if(cv.imwrite(save_path+'_'+name+'.jpg',roi_img)):
+                print('save img fail')
+
         print(img_path)
 
 if __name__ == "__main__":
-    base_path = r'Y:\data\num\unsb'
-    target_path = r'Y:\data\num\unsb\roi'
+    base_path = r'C:\Users\lj893\Desktop\selected'
+    target_path = r'C:\Users\lj893\Desktop\selected\roi'
+    comm_function.mkdir(target_path)
     label_names = ['dlsmb']
     xml_paths = glob.glob(base_path+'/*.xml',recursive = True)
     readxml = Readxml()
