@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2020-05-24 02:26:05
 @LastEditors: lijun
-@LastEditTime: 2020-05-24 02:35:34
+@LastEditTime: 2020-05-30 20:15:43
 @Description: file content
 '''
 import glob
@@ -21,9 +21,9 @@ class Rename(object):
                 print('rename {} fail'.format(img_path))
 
 if __name__ == "__main__":
-    file_path = r'C:\Users\lj893\Desktop\selected\roi'
-    ori_key_name = '.jpg_dlsmb.'
-    dst_key_name = '.'
+    file_path = r'C:\Users\lj893\Desktop\all_roi'
+    ori_key_name = 'alllighton'
+    dst_key_name = 'allon'
     rename = Rename()
     rename.rename_file(file_path,ori_key_name,dst_key_name)
     

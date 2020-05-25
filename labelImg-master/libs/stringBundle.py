@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2019-12-30 17:13:28
 @LastEditors: lijun
-@LastEditTime: 2020-05-25 20:28:20
+@LastEditTime: 2020-05-26 20:11:54
 @Description: file content
 '''
 #!/usr/bin/env python
@@ -65,7 +65,6 @@ class StringBundle:
     def __loadBundle(self, path):
         PROP_SEPERATOR = '='
         f = QFile(path)
-        print(path)
         if f.exists():
             if f.open(QIODevice.ReadOnly | QFile.Text):
                 text = QTextStream(f)
@@ -74,9 +73,9 @@ class StringBundle:
             while not text.atEnd():
                 line = ustr(text.readLine())
                 key_value = line.split(PROP_SEPERATOR)
-                print(key_value)
                 key = key_value[0].strip()
                 value = PROP_SEPERATOR.join(key_value[1:]).strip().strip('"')
                 self.idToMessage[key] = value
+            self.idToMessage['openTxt'] = 'open Txt'
 
             f.close()
