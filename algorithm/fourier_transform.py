@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2020-05-29 14:08:40
 @LastEditors: lijun
-@LastEditTime: 2020-05-29 18:44:30
+@LastEditTime: 2020-06-02 11:23:04
 @Description: file content
 '''
 import numpy as np
@@ -44,7 +44,7 @@ def fourier_numpy(path):
 def fourier_cv(img):
  
     # print(path,'\n')
-    img = cv.imread(img,0)
+    # img = cv.imread(img,0)
     # cv.imshow('ori.jpg',img)
     # img = img[360:720,640:1280]
     # cv.imshow('dst.jpg',img)
@@ -56,8 +56,11 @@ def fourier_cv(img):
     mid_data = magnitude_spectrum[540][960]
     # mid_data = magnitude_spectrum[180][320]
     # result_data = list(filter(lambda data:abs(data-mid_data)<35,magnitude_spectrum.flatten()))
-    magnitude_spectrum = magnitude_spectrum.flatten()
-    # dst_data = magnitude_spectrum-mid_data
+    # magnitude_spectrum = magnitude_spectrum.flatten()
+    dst_data = abs(magnitude_spectrum-mid_data)
+    x = dst_data[dst_data<35]
+    print(x)
+    print(x.size)
     result = []
     # for data in magnitude_spectrum:
     #     deal_data(data,mid_data,result)
@@ -71,8 +74,8 @@ def fourier_cv(img):
     #         if bias<35:
     #             print('x:{} y:{} bias:{} mid_data:{}'.format(index,i,bias,mid_data))
 
-    result = list(filter(deal_data,magnitude_spectrum))
-    print(result)
+    # result = list(filter(deal_data,magnitude_spectrum))
+    # print(result)
     # plt.subplot(121),plt.imshow(img, cmap = 'gray')
     # plt.title('Input Image'), plt.xticks([]), plt.yticks([])
     # plt.subplot(122),plt.imshow(magnitude_spectrum, cmap = 'gray')
@@ -91,19 +94,19 @@ if __name__ == "__main__":
     base_path = r'C:\Users\lj893\Desktop\candidate'
     # img_paths = glob.glob(base_path+'/*.jpg',recursive = True)
     # for img_path in img_paths:
-    img_path = r'C:\Users\lj893\Desktop\candidate\8.jpg'
-    fourier_cv(img_path)
-    # video_path = r'C:\Users\lj893\Desktop\test.avi'
-    # video = cv.VideoCapture(video_path)
-    # if video.isOpened(): #判断是否正常打开
-    #     rval , frame = video.read()
-    #     print("视频打开成功！")
-    # else:
-    #     rval = False
-    #     print("视频打开失败！")
-    # while rval:   #循环读取视频帧
-    #     rval, frame = video.read()
-    #     # cv.imshow('ori.jpg',frame)
-    #     # cv.waitKey(0)
-    #     frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    #     fourier_cv(frame)
+    # img_path = r'C:\Users\lj893\Desktop\candidate\8.jpg'
+    # fourier_cv(img_path)
+    video_path = r'C:\Users\lj893\Desktop\test.avi'
+    video = cv.VideoCapture(video_path)
+    if video.isOpened(): #判断是否正常打开
+        rval , frame = video.read()
+        print("视频打开成功！")
+    else:
+        rval = False
+        print("视频打开失败！")
+    while rval:   #循环读取视频帧
+        rval, frame = video.read()
+        # cv.imshow('ori.jpg',frame)
+        # cv.waitKey(0)
+        frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        fourier_cv(frame)

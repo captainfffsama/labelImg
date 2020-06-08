@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2020-05-15 15:28:21
 @LastEditors: lijun
-@LastEditTime: 2020-05-26 16:00:54
+@LastEditTime: 2020-06-02 10:07:10
 @Description: deal file
 '''
 import shutil
@@ -26,7 +26,7 @@ class Dealfile(object):
         """
         try:
             shutil.copy2(file_path,dst_path)
-            print('{} has copy to {}'.format(file_path,dst_path))
+            # print('{} has copy to {}'.format(file_path,dst_path))
         except Exception as e:
             print(e)
 

@@ -2,7 +2,7 @@
 @Author: lijun
 @Date: 2020-06-01 11:58:08
 @LastEditors: lijun
-@LastEditTime: 2020-06-01 18:32:56
+@LastEditTime: 2020-06-02 10:11:12
 @Description: file content
 '''
 import os
@@ -40,7 +40,7 @@ class divideDataTT(object):
             train_class_num[class_num_data[0]] = round(class_num_data[1]*divide_data['train'])
             test_class_num[class_num_data[0]] = round(class_num_data[1]*divide_data['test'])
             val_class_num[class_num_data[0]] = round(class_num_data[1]*divide_data['val'])
-        print(train_class_num,test_class_num,val_class_num)
+        print(train_class_num,'\n',test_class_num,'\n',val_class_num)
         random.shuffle(all_paths)
         # for class_num in divide_class_num:
         
@@ -72,10 +72,10 @@ class divideDataTT(object):
                 divide_class.setdefault('val',[]).append(jpg_path)
         for key,value in divide_class.items():
             new_target_path = os.path.join(target_path,key)
-            with futures.ThreadPoolExecutor(32) as pool:
+            with futures.ThreadPoolExecutor(16) as pool:
                 task_list = (pool.submit(deal_file.copy_file,file_path,new_target_path) for file_path in value)
                 for i in tqdm(futures.as_completed(task_list),total=len(value)):
-                    pass    
+                    pass
 if __name__ == "__main__":
     base_path = r'C:\Users\lj893\Desktop\test'
     target_path = r'C:\Users\lj893\Desktop\test'
