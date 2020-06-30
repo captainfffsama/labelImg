@@ -69,5 +69,5 @@ class StringBundle:
                 key = key_value[0].strip()
                 value = PROP_SEPERATOR.join(key_value[1:]).strip().strip('"')
                 self.idToMessage[key] = value
-
+            self.idToMessage['openTxt'] = 'open Txt'
             f.close()

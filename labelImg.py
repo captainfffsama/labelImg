@@ -73,7 +73,9 @@ class MainWindow(QMainWindow, WindowMixin):
     def __init__(self, defaultFilename=None, defaultPrefdefClassFile=None, defaultSaveDir=None):
         super(MainWindow, self).__init__()
         self.setWindowTitle(__appname__)
-
+        
+        #添加是否打开txt
+        self.isTxt = False
         # Load setting in the main thread
         self.settings = Settings()
         self.settings.load()
@@ -207,6 +209,9 @@ class MainWindow(QMainWindow, WindowMixin):
         open = action(getStr('openFile'), self.openFile,
                       'Ctrl+O', 'open', getStr('openFileDetail'))
 
+        opentxt = action(getStr('openTxt'), self.openTxt,
+                      'Ctrl+T', 'open', getStr('openTxt'))
+
         opendir = action(getStr('openDir'), self.openDirDialog,
                          'Ctrl+u', 'open', getStr('openDir'))
 
@@ -338,7 +343,7 @@ class MainWindow(QMainWindow, WindowMixin):
                               fitWindow=fitWindow, fitWidth=fitWidth,
                               zoomActions=zoomActions,
                               fileMenuActions=(
-                                  open, opendir, save, saveAs, close, resetAll, quit),
+                                  open, opentxt, opendir, save, saveAs, close, resetAll, quit),
                               beginner=(), advanced=(),
                               editMenu=(edit, copy, delete,
                                         None, color1, self.drawSquaresOption),
@@ -375,7 +380,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.displayLabelOption.triggered.connect(self.togglePaintLabelsOption)
 
         addActions(self.menus.file,
-                   (open, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, save_format, saveAs, close, resetAll, quit))
+                   (open, opentxt, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, save_format, saveAs, close, resetAll, quit))
         addActions(self.menus.help, (help, showInfo))
         addActions(self.menus.view, (
             self.autoSaving,
@@ -396,11 +401,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, copy, delete, None,
+            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
 
         self.actions.advanced = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, save, save_format, None,
+            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, save, save_format, None,
             createMode, editMode, None,
             hideAll, showAll)
 
@@ -756,7 +761,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def loadLabels(self, shapes):
         s = []
-        for label, points, line_color, fill_color, difficult in shapes:
+        for label, points, line_color, fill_color, difficult, imgsize in shapes:
             shape = Shape(label=label)
             for x, y in points:
 
@@ -767,6 +772,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
                 shape.addPoint(QPointF(x, y))
             shape.difficult = difficult
+            shape.imgsize = imgsize
             shape.close()
             s.append(shape)
 
@@ -1201,8 +1207,25 @@ class MainWindow(QMainWindow, WindowMixin):
                 if isinstance(filename, (tuple, list)):
                     filename = filename[0]
             self.loadPascalXMLByFilename(filename)
-
+    def openTxt(self,_value=False, dirpath=None, silent=False):
+            self.isTxt = True
+            if not self.mayContinue():
+                return
+            defaultOpenDirPath = dirpath if dirpath else '.'
+            if self.lastOpenDir and os.path.exists(self.lastOpenDir):
+                defaultOpenDirPath = self.lastOpenDir
+            else:
+                defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
+            if silent!=True :
+                # filters = "Open imgPath file (%s)" % ' '.join(['*.txt'])
+                filters = '{}'.format('*')
+                targetDirPath = ustr(QFileDialog.getOpenFileName(self,
+                                                             '%s - Open Txt File' % __appname__, defaultOpenDirPath,filters))
+            else:
+                targetDirPath = ustr(defaultOpenDirPath)
+            self.importTxtImages(targetDirPath)
     def openDirDialog(self, _value=False, dirpath=None, silent=False):
+        self.isTxt = False
         if not self.mayContinue():
             return
 
@@ -1219,6 +1242,23 @@ class MainWindow(QMainWindow, WindowMixin):
             targetDirPath = ustr(defaultOpenDirPath)
 
         self.importDirImages(targetDirPath)
+    def importTxtImages(self,txtFile):
+        try:
+            f = open(txtFile[0])
+            self.defaultSaveDir = None
+            self.fileListWidget.clear()
+        except:
+            print('not open txt file')
+            return
+        lines = f.readlines()
+
+        new_line = []
+        new_line = list(map(lambda x: x.strip('\n'),lines))
+        self.mImgList = new_line
+        for imgPath in self.mImgList:
+            item = QListWidgetItem(imgPath)
+            self.fileListWidget.addItem(item)
+        self.openNextImg()
 
     def importDirImages(self, dirpath):
         if not self.mayContinue() or not dirpath:
@@ -1258,8 +1298,25 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.defaultSaveDir is not None:
                 if self.dirty is True:
                     self.saveFile()
+            if self.isTxt is True:
+                    currIndex = self.mImgList.index(self.filePath)
+                    if currIndex - 1 >=0:
+                        filename = self.mImgList[currIndex-1]
+                        self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
             else:
-                self.changeSavedirDialog()
+                if self.isTxt is True:
+                    filename = None
+                    if self.filePath is None:
+                        filename = self.mImgList[0]
+                        self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
+                        self.loadFile(filename)
+                    else:
+                        currIndex = self.mImgList.index(self.filePath)
+                        if currIndex - 1 < len(self.mImgList):
+                            filename = self.mImgList[currIndex-1]
+                            self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
+                else:
+                    self.changeSavedirDialog()
                 return
 
         if not self.mayContinue():
@@ -1283,8 +1340,52 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.defaultSaveDir is not None:
                 if self.dirty is True:
                     self.saveFile()
+                if self.isTxt is True:
+                    currIndex = self.mImgList.index(self.filePath)
+                    if currIndex + 1 < len(self.mImgList):
+                        filename = self.mImgList[currIndex+1]
+                        self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
             else:
-                self.changeSavedirDialog()
+                if self.isTxt is True:
+                    filename = None
+                    if self.filePath is None:
+                        filename = self.mImgList[0]
+                        self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
+                        self.loadFile(filename)
+                    else:
+                        currIndex = self.mImgList.index(self.filePath)
+                        if currIndex + 1 < len(self.mImgList):
+                            filename = self.mImgList[currIndex+1]
+                            self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
+                else:
+                    self.changeSavedirDialog()
+                return
+
+        if not self.mayContinue():
+            return
+
+        if len(self.mImgList) <= 0:
+            return
+
+        filename = None
+        if self.filePath is None:
+            filename = self.mImgList[0]
+        else:
+            currIndex = self.mImgList.index(self.filePath)
+            if currIndex + 1 < len(self.mImgList):
+                filename = self.mImgList[currIndex + 1]
+
+        if filename:
+            self.loadFile(filename)
+    def openNextImgTxt(self, _value=False):
+        # Proceding prev image without dialog if having any label
+        if self.autoSaving.isChecked():
+            # self.defaultSaveDir = self.filePath.split(os.path.basename(self.filePath))[0]
+            if self.defaultSaveDir is not None:
+                if self.dirty is True:
+                    self.saveFile()
+            else:
+                # self.changeSavedirDialog()
                 return
 
         if not self.mayContinue():
@@ -1305,6 +1406,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.loadFile(filename)
 
     def openFile(self, _value=False):
+        self.isTxt = False
         if not self.mayContinue():
             return
         path = os.path.dirname(ustr(self.filePath)) if self.filePath else '.'

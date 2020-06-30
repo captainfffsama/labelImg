@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
+import math
 try:
     from PyQt5.QtGui import *
     from PyQt5.QtCore import *
@@ -38,13 +38,14 @@ class Shape(object):
     point_size = 8
     scale = 1.0
 
-    def __init__(self, label=None, line_color=None, difficult=False, paintLabel=False):
+    def __init__(self, label=None, line_color=None, difficult=False, paintLabel=False, imgsize = None):
         self.label = label
         self.points = []
         self.fill = False
         self.selected = False
         self.difficult = difficult
         self.paintLabel = paintLabel
+        self.imgsize = imgsize
 
         self._highlightIndex = None
         self._highlightMode = self.NEAR_VERTEX
@@ -86,6 +87,17 @@ class Shape(object):
 
     def paint(self, painter):
         if self.points:
+            imgsize = self.imgsize
+            if imgsize is not None:
+                width = int(imgsize[0][0])
+                height = int(imgsize[0][1])
+                area = math.sqrt(width*height)
+                # print(area)
+                #1920*1080é˘ç§Ż
+                ratio = area/1440
+                pointsize = int(25*ratio)
+            else:
+                pointsize = 25
             color = self.select_line_color if self.selected else self.line_color
             pen = QPen(color)
             # Try using integer sizes for smoother drawing(?)
@@ -120,7 +132,8 @@ class Shape(object):
                     min_y = min(min_y, point.y())
                 if min_x != sys.maxsize and min_y != sys.maxsize:
                     font = QFont()
-                    font.setPointSize(8)
+                    # font.setPointSize(8)
+                    font.setPointSize(pointsize)
                     font.setBold(True)
                     painter.setFont(font)
                     if(self.label == None):
