@@ -7,7 +7,6 @@ import platform
 import re
 import sys
 import subprocess
-
 from functools import partial
 from collections import defaultdict
 
@@ -77,6 +76,13 @@ class MainWindow(QMainWindow, WindowMixin):
         #添加是否打开txt
         self.isTxt = False
         # Load setting in the main thread
+        self.txtPath = None
+        self.saveTxtName = None
+        self.imgPath = None
+        self.isDelete = False
+        self.readOnlyOnce = True
+        self.txtData = []
+
         self.settings = Settings()
         self.settings.load()
         settings = self.settings
@@ -487,15 +493,63 @@ class MainWindow(QMainWindow, WindowMixin):
         # Open Dir if deafult file
         if self.filePath and os.path.isdir(self.filePath):
             self.openDirDialog(dirpath=self.filePath, silent=True)
-
+    def saveErrImg(self):
+        if self.txtPath is not None:
+            absTxtPath = os.path.dirname(self.txtPath)
+            saveTxtPath = os.path.join(absTxtPath,self.saveTxtName)
+            # txtData = []
+            if self.readOnlyOnce and os.path.exists(saveTxtPath):
+                r = open(saveTxtPath,'r')
+                self.txtData = r.readlines()
+                r.close()
+                self.readOnlyOnce = False
+            if self.isDelete:
+                self.txtData.remove(self.imgPath)
+            elif self.imgPath not in self.txtData:
+                self.txtData.append(self.imgPath)
+            w = open(saveTxtPath,'w')
+            w.writelines(self.txtData)
+            w.close()
     def keyReleaseEvent(self, event):
+        self.isDelete = False
         if event.key() == Qt.Key_Control:
             self.canvas.setDrawingShapeToSquare(False)
-
+        # 保存质量有问题的图片到以1~9命名的txt中
+        if event.key() == Qt.Key_1:
+            self.saveTxtName = '1.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_2:
+            self.saveTxtName = '2.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_3:
+            self.saveTxtName = '3.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_4:
+            self.saveTxtName = '4.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_5:
+            self.saveTxtName = '5.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_6:
+            self.saveTxtName = '6.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_7:
+            self.saveTxtName = '7.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_8:
+            self.saveTxtName = '8.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_9:
+            self.saveTxtName = '9.txt'
+            self.saveErrImg()
+        elif event.key() == Qt.Key_0:
+            self.isDelete = True
+            self.saveErrImg()
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Control:
             # Draw rectangle if Ctrl is pressed
             self.canvas.setDrawingShapeToSquare(True)
+
 
     ## Support Functions ##
     def set_format(self, save_format):
@@ -997,6 +1051,7 @@ class MainWindow(QMainWindow, WindowMixin):
         """Load the specified file, or the last opened file if None."""
         self.resetState()
         self.canvas.setEnabled(False)
+        self.imgPath = filePath+'\n'
         if filePath is None:
             filePath = self.settings.get(SETTING_FILENAME)
 
@@ -1244,7 +1299,8 @@ class MainWindow(QMainWindow, WindowMixin):
         self.importDirImages(targetDirPath)
     def importTxtImages(self,txtFile):
         try:
-            f = open(txtFile[0])
+            self.txtPath = txtFile[0]
+            f = open(self.txtPath)
             self.defaultSaveDir = None
             self.fileListWidget.clear()
         except:
