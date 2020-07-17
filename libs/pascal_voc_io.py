@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 import sys
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element, SubElement
+from lxml.etree import ElementTree
+from lxml.etree import Element, SubElement
 from lxml import etree
 import codecs
 from libs.constants import DEFAULT_ENCODING
@@ -14,7 +14,7 @@ ENCODE_METHOD = DEFAULT_ENCODING
 
 class PascalVocWriter:
 
-    def __init__(self, foldername, filename, imgSize,databaseSrc='Unknown', localImgPath=None):
+    def __init__(self, foldername, filename, imgSize,databaseSrc='Unknown', localImgPath=None, origin_xmlTree=None):
         self.foldername = foldername
         self.filename = filename
         self.databaseSrc = databaseSrc
@@ -22,12 +22,13 @@ class PascalVocWriter:
         self.boxlist = []
         self.localImgPath = localImgPath
         self.verified = False
+        self.origin_xmlTree = origin_xmlTree
 
     def prettify(self, elem):
         """
             Return a pretty-printed XML string for the Element.
         """
-        rough_string = ElementTree.tostring(elem, 'utf8')
+        rough_string = etree.tostring(elem)
         root = etree.fromstring(rough_string)
         return etree.tostring(root, pretty_print=True, encoding=ENCODE_METHOD).replace("  ".encode(), "\t".encode())
         # minidom does not support UTF-8
@@ -109,8 +110,16 @@ class PascalVocWriter:
             ymax = SubElement(bndbox, 'ymax')
             ymax.text = str(each_object['ymax'])
 
+    def emptyObject(self, root):
+        # 把来自原始xml中的object删除，用来自canvas的object来替代原始的object
+        objs = root.findall("object")
+        for obj in objs:
+            root.remove(obj)
+
+
     def save(self, targetFile=None):
-        root = self.genXML()
+        root = self.genXML() if self.origin_xmlTree is None else self.origin_xmlTree
+        self.emptyObject(root)
         self.appendObjects(root)
         out_file = None
         if targetFile is None:
@@ -130,8 +139,10 @@ class PascalVocReader:
         # shapes type:
         # [labbel, [(x1,y1), (x2,y2), (x3,y3), (x4,y4)], color, color, difficult]
         self.shapes = []
+        self.other_data = []
         self.filepath = filepath
         self.verified = False
+        self.xmlTree = None
         try:
             self.parseXML()
         except:
@@ -139,6 +150,9 @@ class PascalVocReader:
 
     def getShapes(self):
         return self.shapes
+
+    def getXmlTree(self):
+        return self.xmlTree
 
     def addShape(self, label, bndbox, difficult,imgsize):
         xmin = int(float(bndbox.find('xmin').text))
@@ -150,21 +164,22 @@ class PascalVocReader:
 
     def parseXML(self):
         assert self.filepath.endswith(XML_EXT), "Unsupport file format"
-        parser = etree.XMLParser(encoding=ENCODE_METHOD)
-        xmltree = ElementTree.parse(self.filepath, parser=parser).getroot()
-        filename = xmltree.find('filename').text
+        parser = etree.XMLParser(encoding="utf-8", strip_cdata=False, remove_blank_text=True)
+        self.xmlTree = etree.parse(self.filepath, parser).getroot()
+        filename = self.xmlTree.find('filename').text
+        print(1)
         try:
-            verified = xmltree.attrib['verified']
+            verified = self.xmlTree.attrib['verified']
             if verified == 'yes':
                 self.verified = True
         except KeyError:
             self.verified = False
-        imgsize = xmltree.find('size')
+        imgsize = self.xmlTree.find('size')
         if imgsize is not None:
             width = imgsize.find('width').text
             height = imgsize.find('height').text
             imgsize = [(width,height)]
-        for object_iter in xmltree.findall('object'):
+        for object_iter in self.xmlTree.findall('object'):
             bndbox = object_iter.find("bndbox")
             label = object_iter.find('name').text
             # Add chris

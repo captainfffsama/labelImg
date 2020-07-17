@@ -209,6 +209,8 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dockFeatures = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
         self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
 
+        self._cahed_xmlTree = None  # 暂存xml，之前只读写objects的方式会导致其他信息的丢失
+
         # Actions
         action = partial(newAction, self)
         quit = action(getStr('quit'), self.close,
@@ -724,7 +726,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.labelSelectionChanged()
 
     def setOnlyShow(self):
-        _label , ok = QInputDialog.getText(self, '单一类别显示',
+        _label, ok = QInputDialog.getText(self, '单一类别显示',
                                           '类别名(多个类别用\';\'号间隔， 空值取消该模式):')
         if ok:
             if _label == "":
@@ -903,7 +905,8 @@ class MainWindow(QMainWindow, WindowMixin):
                 if annotationFilePath[-4:].lower() != ".xml":
                     annotationFilePath += XML_EXT
                 self.labelFile.savePascalVocFormat(annotationFilePath, shapes, self.filePath, self.imageData,
-                                                   self.lineColor.getRgb(), self.fillColor.getRgb())
+                                                   self.lineColor.getRgb(), self.fillColor.getRgb(),
+                                                   origin_xmlTree=self._cahed_xmlTree)
             elif self.usingYoloFormat is True:
                 if annotationFilePath[-4:].lower() != ".txt":
                     annotationFilePath += TXT_EXT
@@ -1643,6 +1646,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         tVocParseReader = PascalVocReader(xmlPath)
         shapes = tVocParseReader.getShapes()
+        self._cahed_xmlTree = tVocParseReader.getXmlTree()
         self.loadLabels(shapes)
         self.canvas.verified = tVocParseReader.verified
 
