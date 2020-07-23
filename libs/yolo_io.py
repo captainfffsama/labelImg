@@ -108,10 +108,10 @@ class YoloReader:
         self.imgSize = imgSize
 
         self.verified = False
-        # try:
-        self.parseYoloFormat()
-        # except:
-            # pass
+        try:
+            self.parseYoloFormat()
+        except:
+            pass
 
     def getShapes(self):
         return self.shapes

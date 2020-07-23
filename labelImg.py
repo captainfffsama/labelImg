@@ -1350,6 +1350,7 @@ class MainWindow(QMainWindow, WindowMixin):
         for imgPath in self.mImgList:
             item = QListWidgetItem(imgPath)
             self.fileListWidget.addItem(item)
+        self.filePath = None
         self.openNextImg()
 
     def importDirImages(self, dirpath):

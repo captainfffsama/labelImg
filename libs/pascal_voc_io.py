@@ -167,7 +167,6 @@ class PascalVocReader:
         parser = etree.XMLParser(encoding="utf-8", strip_cdata=False, remove_blank_text=True)
         self.xmlTree = etree.parse(self.filepath, parser).getroot()
         filename = self.xmlTree.find('filename').text
-        print(1)
         try:
             verified = self.xmlTree.attrib['verified']
             if verified == 'yes':
