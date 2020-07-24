@@ -26,7 +26,6 @@ except ImportError:
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
 
-from combobox import ComboBox
 from libs.resources import *
 from libs.constants import *
 from libs.utils import *
@@ -47,7 +46,6 @@ from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
 __appname__ = 'labelImg'
-
 
 class WindowMixin(object):
 
@@ -148,10 +146,6 @@ class MainWindow(QMainWindow, WindowMixin):
         listLayout.addWidget(self.editButton)
         listLayout.addWidget(self.diffcButton)
         listLayout.addWidget(useDefaultLabelContainer)
-
-        # Create and add combobox for showing unique labels in group 
-        self.comboBox = ComboBox(self)
-        listLayout.addWidget(self.comboBox)
 
         # Create and add a widget for showing current label items
         self.labelList = QListWidget()
@@ -657,7 +651,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.labelFile = None
         self.canvas.resetState()
         self.labelCoordinates.clear()
-        self.comboBox.cb.clear()
 
     def currentItem(self):
         items = self.labelList.selectedItems()
@@ -739,7 +732,6 @@ class MainWindow(QMainWindow, WindowMixin):
 
         def exists(filename):
             return os.path.exists(filename)
-
         menu = self.menus.recentFiles
         menu.clear()
         files = [f for f in self.recentFiles if f !=
@@ -765,7 +757,6 @@ class MainWindow(QMainWindow, WindowMixin):
             item.setText(text)
             item.setBackground(generateColorByText(text))
             self.setDirty()
-            self.updateComboBox()
 
     # Tzutalin 20160906 : Add file list and dock to move faster
     def fileitemDoubleClicked(self, item=None):
@@ -829,7 +820,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.labelList.addItem(item)
         for action in self.actions.onShapesPresent:
             action.setEnabled(True)
-        self.updateComboBox()
 
     def remLabel(self, shape):
         if shape is None:
@@ -839,7 +829,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.labelList.takeItem(self.labelList.row(item))
         del self.shapesToItems[shape]
         del self.itemsToShapes[item]
-        self.updateComboBox()
 
     def loadLabels(self, shapes):
         s = []
@@ -869,7 +858,6 @@ class MainWindow(QMainWindow, WindowMixin):
                 shape.fill_color = generateColorByText(label)
 
             self.addLabel(shape)
-        self.updateComboBox()
         if self.only_show:
             self.filter_showBox()
         self.canvas.loadShapes(s)
@@ -883,17 +871,6 @@ class MainWindow(QMainWindow, WindowMixin):
             if label not in self.only_show:
                 item.setCheckState(Qt.Unchecked)
                 self.canvas.setShapeVisible(shape, False)
-
-    def updateComboBox(self):
-        # Get the unique labels and add them to the Combobox.
-        itemsTextList = [str(self.labelList.item(i).text()) for i in range(self.labelList.count())]
-
-        uniqueTextList = list(set(itemsTextList))
-        # Add a null row for showing all the labels
-        uniqueTextList.append("")
-        uniqueTextList.sort()
-
-        self.comboBox.update_items(uniqueTextList)
 
     def saveLabels(self, annotationFilePath):
         annotationFilePath = ustr(annotationFilePath)
@@ -936,16 +913,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.addLabel(self.canvas.copySelectedShape())
         # fix copy and delete
         self.shapeSelectionChanged(True)
-
-    def comboSelectionChanged(self, index):
-        text = self.comboBox.cb.itemText(index)
-        for i in range(self.labelList.count()):
-            if text == "":
-                self.labelList.item(i).setCheckState(2)
-            elif text != self.labelList.item(i).text():
-                self.labelList.item(i).setCheckState(0)
-            else:
-                self.labelList.item(i).setCheckState(2)
 
     def labelSelectionChanged(self):
         item = self.currentItem()
