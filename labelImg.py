@@ -844,34 +844,45 @@ class MainWindow(QMainWindow, WindowMixin):
     def loadLabels(self, shapes):
         s = []
         for label, points, line_color, fill_color, difficult, imgsize in shapes:
-            if self.only_show is None or label in self.only_show:
-                shape = Shape(label=label)
-                for x, y in points:
+            shape = Shape(label=label)
+            for x, y in points:
 
-                    # Ensure the labels are within the bounds of the image. If not, fix them.
-                    x, y, snapped = self.canvas.snapPointToCanvas(x, y)
-                    if snapped:
-                        self.setDirty()
+                # Ensure the labels are within the bounds of the image. If not, fix them.
+                x, y, snapped = self.canvas.snapPointToCanvas(x, y)
+                if snapped:
+                    self.setDirty()
 
-                    shape.addPoint(QPointF(x, y))
-                shape.difficult = difficult
-                shape.imgsize = imgsize
-                shape.close()
-                s.append(shape)
+                shape.addPoint(QPointF(x, y))
+            shape.difficult = difficult
+            shape.imgsize = imgsize
+            shape.close()
+            s.append(shape)
 
-                if line_color:
-                    shape.line_color = QColor(*line_color)
-                else:
-                    shape.line_color = generateColorByText(label)
+            if line_color:
+                shape.line_color = QColor(*line_color)
+            else:
+                shape.line_color = generateColorByText(label)
 
-                if fill_color:
-                    shape.fill_color = QColor(*fill_color)
-                else:
-                    shape.fill_color = generateColorByText(label)
+            if fill_color:
+                shape.fill_color = QColor(*fill_color)
+            else:
+                shape.fill_color = generateColorByText(label)
 
-                self.addLabel(shape)
+            self.addLabel(shape)
         self.updateComboBox()
+        if self.only_show:
+            self.filter_showBox()
         self.canvas.loadShapes(s)
+
+    def filter_showBox(self):
+        # 在单类显示时，把其他类别类别的bbox自动勾选为不显示
+        for idx in range(len(self.labelList)):
+            item = self.labelList.item(idx)
+            shape = self.itemsToShapes[item]
+            label = item.text()
+            if label not in self.only_show:
+                item.setCheckState(Qt.Unchecked)
+                self.canvas.setShapeVisible(shape, False)
 
     def updateComboBox(self):
         # Get the unique labels and add them to the Combobox.
