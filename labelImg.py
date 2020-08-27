@@ -503,6 +503,11 @@ class MainWindow(QMainWindow, WindowMixin):
             self.openDirDialog(dirpath=self.filePath, silent=True)
 
     def saveErrImg(self):
+        if not self.isTxt:
+            special_txt_path = os.path.join(os.path.dirname(self.filePath),'special_txt')
+            os.makedirs(special_txt_path)
+            self.txtPath = os.path.join(special_txt_path,os.path.basename(self.filePath))
+
         if self.txtPath is not None:
             absTxtPath = os.path.dirname(self.txtPath)
             saveTxtPath = os.path.join(absTxtPath, self.saveTxtName)
