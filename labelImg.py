@@ -512,12 +512,13 @@ class MainWindow(QMainWindow, WindowMixin):
         if self.txtPath is not None:
             absTxtPath = os.path.dirname(self.txtPath)
             saveTxtPath = os.path.join(absTxtPath, self.saveTxtName)
-            # txtData = []
+            self.txtData = []
+            print(os.path.exists(saveTxtPath))
             if self.readOnlyOnce and os.path.exists(saveTxtPath):
                 r = open(saveTxtPath, 'r')
                 self.txtData = r.readlines()
                 r.close()
-                self.readOnlyOnce = False
+                # self.readOnlyOnce = False
             if self.isDelete:
                 self.txtData.remove(self.imgPath)
             elif self.imgPath not in self.txtData:
