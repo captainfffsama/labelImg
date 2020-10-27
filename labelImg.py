@@ -565,8 +565,10 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Control:
-            # Draw rectangle if Ctrl is pressed
-            self.canvas.setDrawingShapeToSquare(True)
+            # Draw rectangle if Ctrl is pressed 
+            # this function has a big bug 
+            #convert True to False
+            self.canvas.setDrawingShapeToSquare(False)
 
     ## Support Functions ##
     def set_format(self, save_format):
