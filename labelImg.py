@@ -520,7 +520,8 @@ class MainWindow(QMainWindow, WindowMixin):
                 r.close()
                 # self.readOnlyOnce = False
             if self.isDelete:
-                self.txtData.remove(self.imgPath)
+                if self.imgPath in self.txtData:
+                    self.txtData.remove(self.imgPath)
             elif self.imgPath not in self.txtData:
                 self.txtData.append(self.imgPath)
             w = open(saveTxtPath, 'w')
