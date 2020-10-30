@@ -1379,6 +1379,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 if self.forceAutoSaving.isChecked() or self.dirty is True:
                     self.saveFile()
                 if self.isTxt is True:
+                    # FIXME: 当self.filePath不存在时,这里会崩,raise ValueError: None is not in list
                     currIndex = self.mImgList.index(self.filePath)
                     if currIndex - 1 >= 0:
                         filename = self.mImgList[currIndex - 1]
