@@ -524,12 +524,14 @@ class MainWindow(QMainWindow, WindowMixin):
                     self.status('{} 已从 {} 删除!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
                 else:
                     self.status('{} 不在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
+                    return
             else:
                 if self.imgPath not in txtData:
                     txtData.add(self.imgPath)
                     self.status('{} 已记录到 {}!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
                 else:
                     self.status('{} 已在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
+                    return 
             w = open(saveTxtPath, 'w')
             w.writelines(txtData)
             w.close()
