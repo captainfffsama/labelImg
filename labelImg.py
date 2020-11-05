@@ -513,7 +513,6 @@ class MainWindow(QMainWindow, WindowMixin):
             saveTxtPath = os.path.join(absTxtPath, self.saveTxtName)
             #NOTE: 这里txtData可能是有None的
             txtData : Set[str] = set()
-            print(os.path.exists(saveTxtPath))
             if os.path.exists(saveTxtPath):
                 r = open(saveTxtPath, 'r')
                 txtData = set(r.readlines())
