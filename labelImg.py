@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import codecs
-import distutils.spawn
 import os.path
 import platform
-import re
 import sys
 import subprocess
 from functools import partial
-from collections import defaultdict
+from typing import Optional, Set
 
 try:
     from PyQt5.QtGui import *
@@ -78,12 +76,10 @@ class MainWindow(QMainWindow, WindowMixin):
         # 添加单类别显示
         self.only_show = None
         # Load setting in the main thread
-        self.txtPath = None
-        self.saveTxtName = None
-        self.imgPath = None
+        self.txtPath: Optional[str] = None
+        self.saveTxtName = '1.txt'
+        self.imgPath: Optional[str] = None
         self.isDelete = False
-        self.readOnlyOnce = True
-        self.txtData = []
 
         self.settings = Settings()
         self.settings.load()
@@ -503,6 +499,9 @@ class MainWindow(QMainWindow, WindowMixin):
             self.openDirDialog(dirpath=self.filePath, silent=True)
 
     def saveErrImg(self):
+        if not self.imgPath:
+            print('self.imgPath is empty')
+            return 
         if not self.txtPath:
             special_txt_path = os.path.join(os.path.dirname(self.filePath),'special_txt')
             if not os.path.exists(special_txt_path):
@@ -512,20 +511,28 @@ class MainWindow(QMainWindow, WindowMixin):
         if self.txtPath is not None:
             absTxtPath = os.path.dirname(self.txtPath)
             saveTxtPath = os.path.join(absTxtPath, self.saveTxtName)
-            self.txtData = []
+            #NOTE: 这里txtData可能是有None的
+            txtData : Set[str] = set()
             print(os.path.exists(saveTxtPath))
-            if self.readOnlyOnce and os.path.exists(saveTxtPath):
+            if os.path.exists(saveTxtPath):
                 r = open(saveTxtPath, 'r')
-                self.txtData = r.readlines()
+                txtData = set(r.readlines())
                 r.close()
-                # self.readOnlyOnce = False
             if self.isDelete:
-                if self.imgPath in self.txtData:
-                    self.txtData.remove(self.imgPath)
-            elif self.imgPath not in self.txtData:
-                self.txtData.append(self.imgPath)
+                if self.imgPath in txtData:
+                    txtData.discard(self.imgPath)
+                    self.status('{} 已从 {} 删除!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                else:
+                    import ipdb; ipdb.set_trace()
+                    self.status('{} 不在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+            else:
+                if self.imgPath not in txtData:
+                    txtData.add(self.imgPath)
+                    self.status('{} 已记录到 {}!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                else:
+                    self.status('{} 已在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
             w = open(saveTxtPath, 'w')
-            w.writelines(self.txtData)
+            w.writelines(txtData)
             w.close()
 
     def keyReleaseEvent(self, event):
