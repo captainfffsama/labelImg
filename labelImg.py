@@ -521,16 +521,15 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.isDelete:
                 if self.imgPath in txtData:
                     txtData.discard(self.imgPath)
-                    self.status('{} 已从 {} 删除!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                    self.status('{} 已从 {} 删除!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
                 else:
-                    import ipdb; ipdb.set_trace()
-                    self.status('{} 不在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                    self.status('{} 不在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
             else:
                 if self.imgPath not in txtData:
                     txtData.add(self.imgPath)
-                    self.status('{} 已记录到 {}!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                    self.status('{} 已记录到 {}!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
                 else:
-                    self.status('{} 已在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(self.txtPath)))
+                    self.status('{} 已在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
             w = open(saveTxtPath, 'w')
             w.writelines(txtData)
             w.close()
