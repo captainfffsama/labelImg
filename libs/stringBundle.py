@@ -39,7 +39,10 @@ class StringBundle:
         return StringBundle(cls.__create_key, localeStr)
 
     def getString(self, stringId):
-        assert(stringId in self.idToMessage), "Missing string id : " + stringId
+        try:
+            assert(stringId in self.idToMessage), "Missing string id : " + stringId
+        except:
+            import ipdb; ipdb.set_trace()
         return self.idToMessage[stringId]
 
     def __createLookupFallbackList(self, localeStr):

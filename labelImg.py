@@ -63,14 +63,36 @@ class WindowMixin(object):
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
         return toolbar
 
+class UtilsFuncMixin(object):
+    r"""这个类专门用来放一些和类方法不是强相关,比较通用,没有什么成员依赖的函数
+    """
+    def str2dict(self,input:str) -> Optional[dict]:
+        r"""将类似 a=xy,b=cat这种字符串转为字典 a,b为key,xy,cat为value
+            这里遇到awsdAWSD 抛出异常,主要服务于setShortCutMode_slot函数
+        """
+        result={}
+        input=input.replace('，',',')
+        for item in input.split(','):
+            k,*_,v=item.split('=')
+            if k.isalpha():
+                if len(k) != 1:
+                    return None
+                if k in ('a','s','d','w','A','S','D','W'):
+                    return None
+                result[k.upper()]=v
+            else:
+                return None
+        return result
+            
 
-class MainWindow(QMainWindow, WindowMixin):
+class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
 
     def __init__(self, defaultFilename=None, defaultPrefdefClassFile=None, defaultSaveDir=None):
         super(MainWindow, self).__init__()
         self.setWindowTitle(__appname__)
 
+        self.shortCutModeKeyMap={} # 用于在shortCutMode中帮助指示哪些快捷键可用,key为 Qt.key,value是标签名
         # 添加是否打开txt
         self.isTxt = False
         # 添加单类别显示
@@ -97,7 +119,7 @@ class MainWindow(QMainWindow, WindowMixin):
         # For loading all image under a directory
         self.mImgList = []
         self.dirname = None
-        self.labelHist = []
+        self.labelHist = [] #记录所有标签名称
         self.lastOpenDir = None
 
         # Whether we need to save or not.
@@ -372,12 +394,19 @@ class MainWindow(QMainWindow, WindowMixin):
         # 进行检查会导致标注新图时， 不存在任何obj的图片会直接跳过，不产生xml
         self.forceAutoSaving = QAction('&强制自动保存', self)
         self.forceAutoSaving.setCheckable(True)
+        self.forceAutoSaving.setChecked(settings.get(SETTING_AUTO_SAVE_FORCE,False))
         # Sync single class mode from PR#106
         self.singleClassMode = QAction(getStr('singleClsMode'), self)
         self.singleClassMode.setShortcut("Ctrl+Shift+S")
         self.singleClassMode.setCheckable(True)
         self.singleClassMode.setChecked(settings.get(SETTING_SINGLE_CLASS, False))
-        self.lastLabel = None
+        self.lastLabel : Optional[str] = None
+        # 添加对指定类添加快捷键功能
+        self.shortCutMode=QAction('shortCutMode',self)
+        self.shortCutMode.setCheckable(True)
+        self.shortCutMode.setChecked(settings.get(SETTING_SHORT_CUT_MODE, False))
+        self.shortCutMode.triggered.connect(self.setShortCutMode_slot)
+
         # Add option to enable/disable labels being displayed at the top of bounding boxes
         self.displayLabelOption = QAction(getStr('displayLabel'), self)
         self.displayLabelOption.setShortcut("Ctrl+Shift+P")
@@ -394,6 +423,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.forceAutoSaving,
             onlyShow,
             self.singleClassMode,
+            self.shortCutMode,
             self.displayLabelOption,
             labels, advancedMode, None,
             hideAll, showAll, None,
@@ -537,6 +567,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def keyReleaseEvent(self, event):
         self.isDelete = False
+        # 这段代码要改表驱动
         if event.key() == Qt.Key_Control:
             self.canvas.setDrawingShapeToSquare(False)
         # 保存质量有问题的图片到以1~9命名的txt中
@@ -570,6 +601,11 @@ class MainWindow(QMainWindow, WindowMixin):
         elif event.key() == Qt.Key_0:
             self.isDelete = True
             self.saveErrImg()
+        else:
+            if event.key() in self.shortCutModeKeyMap:
+                self.lastLabel=self.shortCutModeKeyMap[event.key()]
+                self.create()
+                self.createShape()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Control:
@@ -934,11 +970,11 @@ class MainWindow(QMainWindow, WindowMixin):
     def labelSelectionChanged(self):
         item = self.currentItem()
         if item and self.canvas.editing():
-            self._noSelectionSlot = True
-            self.canvas.selectShape(self.itemsToShapes[item])
-            shape = self.itemsToShapes[item]
-            # Add Chris
-            self.diffcButton.setChecked(shape.difficult)
+                self._noSelectionSlot = True
+                self.canvas.selectShape(self.itemsToShapes[item])
+                shape = self.itemsToShapes[item]
+                # Add Chris
+                self.diffcButton.setChecked(shape.difficult)
 
     def labelItemChanged(self, item):
         shape = self.itemsToShapes[item]
@@ -961,12 +997,19 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.labelDialog = LabelDialog(
                     parent=self, listItem=self.labelHist)
 
-            # Sync single class mode from PR#106
-            if self.singleClassMode.isChecked() and self.lastLabel:
-                text = self.lastLabel
+            if self.shortCutMode.isChecked():
+                if self.lastLabel in self.shortCutModeKeyMap.values():
+                    text=self.lastLabel
+                    self.lastLabel=None
+                else:
+                    text = self.labelDialog.popUp(text=self.prevLabelText)
             else:
-                text = self.labelDialog.popUp(text=self.prevLabelText)
-                self.lastLabel = text
+                # Sync single class mode from PR#106
+                if self.singleClassMode.isChecked() and self.lastLabel:
+                    text = self.lastLabel
+                else:
+                    text = self.labelDialog.popUp(text=self.prevLabelText)
+                    self.lastLabel = text
         else:
             text = self.defaultLabelTextLine.text()
 
@@ -1233,10 +1276,69 @@ class MainWindow(QMainWindow, WindowMixin):
             settings[SETTING_LAST_OPEN_DIR] = ''
 
         settings[SETTING_AUTO_SAVE] = self.autoSaving.isChecked()
+        settings[SETTING_AUTO_SAVE_FORCE]=self.forceAutoSaving.isChecked()
         settings[SETTING_SINGLE_CLASS] = self.singleClassMode.isChecked()
         settings[SETTING_PAINT_LABEL] = self.displayLabelOption.isChecked()
         settings[SETTING_DRAW_SQUARE] = self.drawSquaresOption.isChecked()
         settings.save()
+
+    def setShortCutMode_slot(self):
+        # TODO: 这里要考虑后续是否要记住上一次的设置
+        if self.shortCutMode.isChecked():
+            _label, ok = QInputDialog.getText(self, '快速标注方式',
+                                            '使用设定的快捷键直接标注该类的框，格式为\{快捷键}\=\{类别名\}, 以,号间隔，仅支持字母,注意不要设置\"awsdAWSD\"空值取消该模式,本模式和单例模式不兼容,启用成功会关闭单例模式')
+            if ok:
+                if not _label:
+                    self.shortCutModeSuccess(False)
+                    return
+                else:
+                    keyLabelMap=self.str2dict(_label)
+                    if keyLabelMap is None:
+                        warningbox=QMessageBox.warning(self,'输入的字符串不符合规则','输入的字符串不可尝试使用awsdAWSD作为快捷键!!!')
+                        self.shortCutModeSuccess(False)
+                        return
+
+                    value_set=set(keyLabelMap.values())
+                    label_set=set(self.labelHist)
+                    #若手滑写了预设label没有的类
+                    if value_set-label_set:
+                        reply=QMessageBox.question(self,'输入字符串有问题!',
+                                "\n".join([
+                                    "输入字串中包含了预设标签中没有的类:",
+                                    repr(value_set-label_set),
+                                    "确定添加?", 
+                                    "取消的话,预设标签中不包含的类将不会被设置为快捷方式",]),
+                                QMessageBox.Yes|QMessageBox.No,
+                                QMessageBox.No)
+
+                        if reply ==QMessageBox.Yes:
+                            self.shortCutModeKeyMap={getattr(Qt,'Key_'+k):v for k,v in keyLabelMap.items()}
+                        else:
+                            self.shortCutModeKeyMap={getattr(Qt,'Key_'+k):v for k,v in keyLabelMap.items() if v in label_set}
+                        if not self.shortCutModeKeyMap:
+                            warningbox=QMessageBox.warning(self,'吐槽','好好检查下输入字串,没有一个预设标签起作用哦!!!')
+                            self.shortCutModeSuccess(False)
+                        else:
+                            self.shortCutModeSuccess(True)
+                    else:
+                        self.shortCutModeKeyMap={getattr(Qt,'Key_'+k):v for k,v in keyLabelMap.items()}
+                        self.shortCutModeSuccess(True)
+        else:
+            self.shortCutModeSuccess(False)
+
+    def shortCutModeSuccess(self,sucess_flag:bool):
+        if sucess_flag:
+            self.shortCutMode.setChecked(True)
+            self.singleClassMode.setChecked(False)
+            self.singleClassMode.setCheckable(False)
+            self.lastLabel=None
+            self.status('启用快捷模式成功,单例模式将被强制关闭并禁用')
+        else:
+            self.shortCutModeKeyMap.clear()
+            self.singleClassMode.setChecked(False)
+            self.singleClassMode.setCheckable(True)
+            self.lastLabel=None
+            self.status('快捷模式取消,单例模式现在可用')
 
     def loadRecent(self, filename):
         if self.mayContinue():
