@@ -1417,13 +1417,15 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         else:
             defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
         if silent != True:
-            # filters = "Open imgPath file (%s)" % ' '.join(['*.txt'])
             filters = '{}'.format('*')
             # TODO:这里defaultOpenDirPath若不是本地路径,会很慢,最好的解决方法是自己继承QFileDialog改成异步的,这里先脏修改了
             # 直接修改最后打开文件夹为txt文件所在文件夹
             targetDirPath = ustr(QFileDialog.getOpenFileName(self,
                                                              '%s - Open Txt File' % __appname__, defaultOpenDirPath,
-                                                             filters,"",QFileDialog.DontUseNativeDialog))
+                                                             filters,""))
+            # targetDirPath = ustr(QFileDialog.getOpenFileName(self,
+            #                                                  '%s - Open Txt File' % __appname__, defaultOpenDirPath,
+            #                                                  filters,"",QFileDialog.DontUseNativeDialog))
         else:
             targetDirPath = ustr(defaultOpenDirPath)
         self.lastOpenDir=os.path.dirname(targetDirPath[0])
