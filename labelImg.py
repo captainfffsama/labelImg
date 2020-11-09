@@ -1117,6 +1117,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
 
     def loadFile(self, filePath=None):
         """Load the specified file, or the last opened file if None."""
+
         self.resetState()
         self.canvas.setEnabled(False)
         self.imgPath = filePath + '\n'
@@ -1213,6 +1214,21 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
 
             self.canvas.setFocus(True)
             return True
+        else:
+            #修改filePath不存在时，保存错误图片路径到err_img_path.txt中
+            print('{} is not in the img filde.'.format(filePath))
+            absErrPath = os.path.dirname(self.txtPath)
+            saveErrTxtPath = os.path.join(absErrPath, 'err_img_path.txt')
+            err_img_data :Set[str] = set()
+            if os.path.exists(saveErrTxtPath):
+                with open(saveErrTxtPath,'r') as err_r:
+                    err_img_data = set(err_r.readlines())
+            with open(saveErrTxtPath,'w') as err_w:
+                err_img_data.add(unicodeFilePath+'\n')
+                err_w.writelines(err_img_data)
+            self.filePath = unicodeFilePath
+            self.addRecentFile(self.filePath)
+
         return False
 
     def resizeEvent(self, event):
