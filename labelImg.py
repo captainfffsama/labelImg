@@ -66,6 +66,7 @@ class WindowMixin(object):
 class UtilsFuncMixin(object):
     r"""这个类专门用来放一些和类方法不是强相关,比较通用,没有什么成员依赖的函数
     """
+    preShortCutModeSetting: str = ''
     def str2dict(self,input:str) -> Optional[dict]:
         r"""将类似 a=xy,b=cat这种字符串转为字典 a,b为key,xy,cat为value
             这里遇到awsdAWSD 抛出异常,主要服务于setShortCutMode_slot函数
@@ -1302,12 +1303,13 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         # TODO: 这里要考虑后续是否要记住上一次的设置
         if self.shortCutMode.isChecked():
             _label, ok = QInputDialog.getText(self, '快速标注方式',
-                                            '使用设定的快捷键直接标注该类的框，格式为\{快捷键}\=\{类别名\}, 以,号间隔，仅支持字母,注意不要设置\"awsdAWSD\"空值取消该模式,本模式和单例模式不兼容,启用成功会关闭单例模式')
+                                            '使用设定的快捷键直接标注该类的框，格式为{快捷键}={类别名}, 以,号间隔，仅支持字母,注意不要设置\"awsdAWSD\".空值取消该模式,本模式和单例模式不兼容,启用成功会关闭单例模式',text=self.preShortCutModeSetting)
             if ok:
                 if not _label:
                     self.shortCutModeSuccess(False)
                     return
                 else:
+                    self.preShortCutModeSetting=_label
                     keyLabelMap=self.str2dict(_label)
                     if keyLabelMap is None:
                         warningbox=QMessageBox.warning(self,'输入的字符串不符合规则','输入的字符串不可尝试使用awsdAWSD作为快捷键!!!')
