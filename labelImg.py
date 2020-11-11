@@ -1408,7 +1408,6 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             self.loadPascalXMLByFilename(filename)
 
     def openTxt(self, _value=False, dirpath=None, silent=False):
-        import ipdb; ipdb.set_trace()
         self.isTxt = True
         if not self.mayContinue():
             return
