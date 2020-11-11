@@ -1408,6 +1408,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             self.loadPascalXMLByFilename(filename)
 
     def openTxt(self, _value=False, dirpath=None, silent=False):
+        import ipdb; ipdb.set_trace()
         self.isTxt = True
         if not self.mayContinue():
             return
@@ -1415,7 +1416,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         if self.lastOpenDir and os.path.exists(self.lastOpenDir):
             defaultOpenDirPath = self.lastOpenDir
         else:
-            defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
+            defaultOpenDirPath = '.'
         if silent != True:
             filters = '{}'.format('*')
             # TODO:这里defaultOpenDirPath若不是本地路径,会很慢,最好的解决方法是自己继承QFileDialog改成异步的,这里先脏修改了
@@ -1428,7 +1429,9 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             #                                                  filters,"",QFileDialog.DontUseNativeDialog))
         else:
             targetDirPath = ustr(defaultOpenDirPath)
-        self.lastOpenDir=os.path.dirname(targetDirPath[0])
+
+        if os.path.isfile(targetDirPath[0]):
+            self.lastOpenDir=os.path.dirname(targetDirPath[0])
         self.importTxtImages(targetDirPath)
 
     def openDirDialog(self, _value=False, dirpath=None, silent=False):
