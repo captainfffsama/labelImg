@@ -1425,6 +1425,14 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             targetDirPath = ustr(QFileDialog.getOpenFileName(self,
                                                              '%s - Open Txt File' % __appname__, defaultOpenDirPath,
                                                              filters,""))
+            if not os.path.isfile(targetDirPath[0]):
+                if self.txtPath is not None:
+                    targetDirPath = (self.txtPath, '*')
+                    warningbox=QMessageBox.warning(self,'注意',
+                    '你没有选中任何文件列表,这里将使用之前的文件列表作为当前文件列表, 之前文件列表路径为: \n {}'
+                    .format(self.txtPath))
+                else:
+                    warning =QMessageBox.warning(self,'警告','注意你没选中任何文件列表,且没有任何值能作为合理的文件列表')
             # targetDirPath = ustr(QFileDialog.getOpenFileName(self,
             #                                                  '%s - Open Txt File' % __appname__, defaultOpenDirPath,
             #                                                  filters,"",QFileDialog.DontUseNativeDialog))
@@ -1456,15 +1464,16 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         self.importDirImages(targetDirPath)
 
     def importTxtImages(self, txtFile):
-        try:
-            self.txtPath = txtFile[0]
-            f = open(self.txtPath)
-            self.defaultSaveDir = None
-            self.fileListWidget.clear()
-        except:
-            print('not open txt file')
+        if (not os.path.exists(txtFile[0])) or (not os.path.isfile(txtFile[0])):
+            print('not open txt file,please check txt  path')
             return
-        lines = f.readlines()
+
+        self.txtPath=txtFile[0]
+        with open(txtFile[0], 'r') as fr:
+            lines = fr.readlines()
+
+        self.defaultSaveDir = None
+        self.fileListWidget.clear()
 
         new_line = []
         new_line = list(map(lambda x: x.strip('\n'), lines))
