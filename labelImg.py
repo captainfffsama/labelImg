@@ -1569,7 +1569,8 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
                     currIndex = self.mImgList.index(self.filePath)
                     if currIndex + 1 < len(self.mImgList):
                         filename = self.mImgList[currIndex + 1]
-                        self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
+                        if filename:
+                            self.defaultSaveDir = filename.split(os.path.basename(filename))[0]
             else:
                 if self.isTxt is True:
                     filename = None
