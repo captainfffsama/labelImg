@@ -1469,7 +1469,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             return
 
         self.txtPath=txtFile[0]
-        with open(txtFile[0], 'r') as fr:
+        with open(txtFile[0], 'r',encoding='utf-8') as fr:
             lines = fr.readlines()
 
         self.defaultSaveDir = None
