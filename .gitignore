@@ -1,4 +1,5 @@
 data/predefined_classes.txt
+data/
 resources/icons/.DS_Store
 
 resources.py
