@@ -84,7 +84,7 @@ class UtilsFuncMixin(object):
             else:
                 return None
         return result
-            
+
 
 class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
@@ -97,7 +97,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         # 添加是否打开txt
         self.isTxt = False
         # 添加单类别显示
-        self.only_show = None
+        self.only_show = set([])
         # Load setting in the main thread
         self.txtPath: Optional[str] = None
         self.saveTxtName = '1.txt'
@@ -532,7 +532,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
     def saveErrImg(self):
         if not self.imgPath:
             print('self.imgPath is empty')
-            return 
+            return
         if not self.txtPath:
             special_txt_path = os.path.join(os.path.dirname(self.filePath),'special_txt')
             if not os.path.exists(special_txt_path):
@@ -561,7 +561,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
                     self.status('{} 已记录到 {}!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
                 else:
                     self.status('{} 已在 {} 中!'.format(os.path.basename(self.imgPath),os.path.basename(saveTxtPath)))
-                    return 
+                    return
             w = open(saveTxtPath, 'w')
             w.writelines(txtData)
             w.close()
@@ -610,8 +610,8 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Control:
-            # Draw rectangle if Ctrl is pressed 
-            # this function has a big bug 
+            # Draw rectangle if Ctrl is pressed
+            # this function has a big bug
             #convert True to False
             self.canvas.setDrawingShapeToSquare(False)
 
@@ -779,7 +779,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             if _label == "":
                 self.only_show = None
             else:
-                self.only_show = _label.split(';')
+                self.only_show = set(_label.split(';'))
 
     def updateFileMenu(self):
         currFilePath = self.filePath
@@ -863,11 +863,14 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         self.actions.shapeLineColor.setEnabled(selected)
         self.actions.shapeFillColor.setEnabled(selected)
 
-    def addLabel(self, shape):
+    def addLabel(self, shape,**kwargs):
         shape.paintLabel = self.displayLabelOption.isChecked()
         item = HashableQListWidgetItem(shape.label)
         item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-        item.setCheckState(Qt.Checked)
+        if "qt_unchecked" in kwargs:
+            item.setCheckState(Qt.Unchecked)
+        else:
+            item.setCheckState(Qt.Checked)
         item.setBackground(generateColorByText(shape.label))
         self.itemsToShapes[item] = shape
         self.shapesToItems[shape] = item
@@ -911,20 +914,25 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
             else:
                 shape.fill_color = generateColorByText(label)
 
-            self.addLabel(shape)
-        if self.only_show:
-            self.filter_showBox()
+            if self.only_show and label not in self.only_show:
+                self.canvas.setShapeVisible(shape, False)
+                self.addLabel(shape,qt_unchecked=True)
+            else:
+                self.addLabel(shape)
+        # if self.only_show:
+        #     self.filter_showBox()
         self.canvas.loadShapes(s)
 
-    def filter_showBox(self):
-        # 在单类显示时，把其他类别类别的bbox自动勾选为不显示
-        for idx in range(len(self.labelList)):
-            item = self.labelList.item(idx)
-            shape = self.itemsToShapes[item]
-            label = item.text()
-            if label not in self.only_show:
-                item.setCheckState(Qt.Unchecked)
-                self.canvas.setShapeVisible(shape, False)
+    # TODO: can rm
+    # def filter_showBox(self):
+    #     # 在单类显示时，把其他类别类别的bbox自动勾选为不显示
+    #     for idx in range(len(self.labelList)):
+    #         item = self.labelList.item(idx)
+    #         shape = self.itemsToShapes[item]
+    #         label = item.text()
+    #         if label not in self.only_show:
+    #             item.setCheckState(Qt.Unchecked)
+    #             self.canvas.setShapeVisible(shape, False)
 
     def saveLabels(self, annotationFilePath):
         annotationFilePath = ustr(annotationFilePath)
@@ -1324,7 +1332,7 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
                                 "\n".join([
                                     "输入字串中包含了预设标签中没有的类:",
                                     repr(value_set-label_set),
-                                    "确定添加?", 
+                                    "确定添加?",
                                     "取消的话,预设标签中不包含的类将不会被设置为快捷方式",]),
                                 QMessageBox.Yes|QMessageBox.No,
                                 QMessageBox.No)
