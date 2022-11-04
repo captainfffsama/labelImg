@@ -1,5 +1,5 @@
 #!/bin/sh
-docker run -it \
+sudo docker run -it \
     --user $(id -u) \
     -e DISPLAY=unix$DISPLAY \
     --workdir=$(pwd) \
