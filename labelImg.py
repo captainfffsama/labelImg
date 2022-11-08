@@ -235,6 +235,9 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         opentxt = action(getStr('openTxt'), self.openTxt,
                          'Ctrl+T', 'open', getStr('openTxt'))
 
+        auto_detect= action(getStr('autoDet'), self.autoDet,
+                         None, 'AI', getStr('autoDet'))
+
         opendir = action(getStr('openDir'), self.openDirDialog,
                          'Ctrl+u', 'open', getStr('openDir'))
 
@@ -441,12 +444,12 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create,
+            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format,auto_detect, None, create,
             copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
 
         self.actions.advanced = (
-            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, save, save_format, None,
+            open, opentxt, opendir, changeSavedir, openNextImg, openPrevImg, save, save_format, auto_detect,None,
             createMode, editMode, None,
             hideAll, showAll)
 
@@ -1450,6 +1453,16 @@ class MainWindow(QMainWindow, WindowMixin,UtilsFuncMixin):
         if os.path.isfile(targetDirPath[0]):
             self.lastOpenDir=os.path.dirname(targetDirPath[0])
         self.importTxtImages(targetDirPath)
+
+    def autoDet(self):
+        if self.mImgList:
+            host_port,flag=QInputDialog.getText(self,"输入自动检测rpc的IP和端口","IP:端口",QLineEdit.Normal,text="192.168.0.198:9000")
+            if host_port and flag:
+                # TODO: 这里待补
+                pass
+        else:
+            error=QMessageBox.critical(self,"拍头","你都没读图片进来,自动检测个毛?")
+
 
     def openDirDialog(self, _value=False, dirpath=None, silent=False):
         self.isTxt = False
