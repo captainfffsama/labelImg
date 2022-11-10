@@ -1613,6 +1613,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
     def reload_xml(self, img_path, flag):
         if flag != 1:
+            self.statusBar().showMessage("{} 检测失败".format(img_path))
+            self.statusBar().show()
             print("{} det failed".format(img_path))
         else:
             if self.filePath.strip() == img_path.strip():
@@ -1621,6 +1623,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 self.loadPascalXMLByFilename(xml_path)
                 # self.canvas.clearMask()
                 self.canvas.setFocus(True)
+            self.statusBar().showMessage("{} xml生成成功".format(img_path))
+            self.statusBar().show()
 
     def setAutoDetCfg(self):
         self.rpc_host=None
@@ -1636,7 +1640,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                     'port'] = self.rpc_host.split(":")
                 self.autodet_previous_cfg['class_thr'] = self.class_thr
                 # XXX:
-                det_thr = AutoDetThread(self.filePath, self.rpc_host,self.class_thr,self)
+                save_dir=self.defaultSaveDir if self.defaultSaveDir else os.path.split(self.filePath)[0]
+                det_thr = AutoDetThread(self.filePath,save_dir, self.rpc_host,self.class_thr,self)
                 # XXX fix
                 det_thr.trigger.connect(self.reload_xml)
                 det_thr.start()

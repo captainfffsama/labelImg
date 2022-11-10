@@ -14,11 +14,12 @@ from .proto.dldetection_pb2_grpc import AiServiceStub
 class AutoDetThread(QThread):
     trigger=pyqtSignal(str,int)
 
-    def __init__(self,img_path,host,cls_thr,parent=None):
+    def __init__(self,img_path,save_dir,host,cls_thr,parent=None):
         super(AutoDetThread,self).__init__(parent)
         self._img_path = img_path
         self._host=host
         self._cls_thr=cls_thr
+        self._save_dir=save_dir
 
     def _respo2dict(self,response):
         result=defaultdict(list)
@@ -45,26 +46,23 @@ class AutoDetThread(QThread):
                 result_dict=self._respo2dict(response)
                 img=QImage()
                 img.loadFromData(QByteArray.fromBase64(img_b64encode))
-                dump2xml(self._img_path,img,result_dict)
+                dump2xml(self._img_path,self._save_dir,img,result_dict)
                 self.trigger.emit(self._img_path,1)
                 print("{} have generated xml".format(self._img_path))
         except Exception as e:
             print("{} have error:{}".format(self._img_path,e))
             self.trigger.emit(self._img_path,0)
 
-def dump2xml(img_path:str,img:QImage,obj_info):
-    img_ext = img_path.split('.')[-1]
-    out_path=img_path.replace('.'+img_ext,'.xml')
-    assert out_path.split('.')[-1] == 'xml'
-    out_dir, xml_name = os.path.split(out_path)
+def dump2xml(img_path:str,save_dir:str,img:QImage,obj_info):
+    img_name,img_ext=os.path.basename(img_path).split('.')
+    out_path=os.path.join(save_dir,img_name+".xml")
     root = ET.Element('annotation')
     folder = ET.SubElement(root, 'folder')
-    folder.text = out_dir
+    folder.text = save_dir
     filename = ET.SubElement(root, 'filename')
-    img_name = xml_name.replace('.xml', '.' + img_ext)
-    filename.text = img_name
+    filename.text = img_name+"."+img_ext
     path = ET.SubElement(root, 'path')
-    path.text = os.path.join(out_dir, img_name)
+    path.text = os.path.join(save_dir, img_name+"."+img_ext)
     size = ET.SubElement(root, 'size')
     width = ET.SubElement(size, 'width')
     height = ET.SubElement(size, 'height')
