@@ -7,6 +7,7 @@ import sys
 import subprocess
 from functools import partial
 from typing import Optional, Set
+from pprint import pprint
 
 try:
     from PyQt5.QtGui import *
@@ -1639,6 +1640,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 self.autodet_previous_cfg['host'], self.autodet_previous_cfg[
                     'port'] = self.rpc_host.split(":")
                 self.autodet_previous_cfg['class_thr'] = self.class_thr
+                pprint(self.autodet_previous_cfg['class_thr'])
+
                 # XXX:
                 save_dir=self.defaultSaveDir if self.defaultSaveDir else os.path.split(self.filePath)[0]
                 det_thr = AutoDetThread(self.filePath,save_dir, self.rpc_host,self.class_thr,self)
@@ -2000,6 +2003,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if self.filePath is None:
             return
         if os.path.isfile(xmlPath) is False:
+            print("xml not existed")
             return
 
         self.set_format(FORMAT_PASCALVOC)

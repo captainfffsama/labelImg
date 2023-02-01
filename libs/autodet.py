@@ -125,10 +125,11 @@ class AutoDetCfgDialog(QDialog):
             self.ui.IPLineEdit.setText(previous_cfg["host"])
             self.ui.portSpinBox.setValue(int(previous_cfg["port"]))
             self.ui.thrDoubleSpinBox.setValue(0.3)
+            print(previous_cfg['class_thr'])
             self.ui.detClassLineEdit.setText(self._thrcfg2str(previous_cfg['class_thr']))
 
     def _thrcfg2str(self,cfg_dict:dict):
-        line_list=[k+":"+str(v) for k,v in cfg_dict.items()]
+        line_list=[k+"="+str(v) for k,v in cfg_dict.items()]
         return ";".join(line_list)
 
     def _deal_classes_info(self,classes_info:str,dthr):
@@ -152,6 +153,7 @@ class AutoDetCfgDialog(QDialog):
         port=self.ui.portSpinBox.text()
         thr=self.ui.thrDoubleSpinBox.text()
         classes_info=self.ui.detClassLineEdit.text()
+        print(classes_info)
         self._host=host+":"+port
         self._class_thr=self._deal_classes_info(classes_info,thr)
         super().accept()
