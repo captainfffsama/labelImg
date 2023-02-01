@@ -1647,7 +1647,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 det_thr.start()
 
         else:
-            error = QMessageBox.critical(self, "拍头", "你都没读图片进来,自动检测个毛?")
+            error = QMessageBox.critical(self, "拍头", "没读图片进来啊,咋检测?")
 
     def openDirDialog(self, _value=False, dirpath=None, silent=False):
         self.isTxt = False
