@@ -246,7 +246,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         opentxt = action(getStr('openTxt'), self.openTxt, 'Ctrl+T', 'open',
                          getStr('openTxt'))
 
-        auto_detect = action(getStr('autoDet'), self.autoDet,None, 'AI',
+        auto_detect = action(getStr('autoDet'), self.autoDet,'Ctrl+D', 'AI',
                              getStr('autoDet'))
 
         opendir = action(getStr('openDir'), self.openDirDialog, 'Ctrl+u',
@@ -326,7 +326,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                         enabled=False)
         copy = action(getStr('dupBox'),
                       self.copySelectedShape,
-                      'Ctrl+D',
+                      None,
                       'copy',
                       getStr('dupBoxDetail'),
                       enabled=False)
