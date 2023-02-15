@@ -326,7 +326,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                         enabled=False)
         copy = action(getStr('dupBox'),
                       self.copySelectedShape,
-                      None,
+                      'Ctrl+c',
                       'copy',
                       getStr('dupBoxDetail'),
                       enabled=False)
