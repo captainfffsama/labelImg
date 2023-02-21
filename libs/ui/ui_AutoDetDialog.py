@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/AutoDetDialog.ui'
+# Form implementation generated from reading ui file '/home/chiebotgpuhq/MyCode/python/labelImg_stable/labelImg/libs/ui/AutoDetDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_AutoDetCfgDialog(object):
     def setupUi(self, AutoDetCfgDialog):
         AutoDetCfgDialog.setObjectName("AutoDetCfgDialog")
-        AutoDetCfgDialog.resize(388, 150)
+        AutoDetCfgDialog.resize(323, 173)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -25,15 +25,18 @@ class Ui_AutoDetCfgDialog(object):
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.IPLabel = QtWidgets.QLabel(AutoDetCfgDialog)
         self.IPLabel.setObjectName("IPLabel")
-        self.horizontalLayout.addWidget(self.IPLabel)
+        self.horizontalLayout_2.addWidget(self.IPLabel)
         self.IPLineEdit = QtWidgets.QLineEdit(AutoDetCfgDialog)
         self.IPLineEdit.setInputMethodHints(QtCore.Qt.ImhNone)
         self.IPLineEdit.setObjectName("IPLineEdit")
-        self.horizontalLayout.addWidget(self.IPLineEdit)
+        self.horizontalLayout_2.addWidget(self.IPLineEdit)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.portLabel = QtWidgets.QLabel(AutoDetCfgDialog)
         self.portLabel.setObjectName("portLabel")
         self.horizontalLayout.addWidget(self.portLabel)
@@ -44,6 +47,8 @@ class Ui_AutoDetCfgDialog(object):
         self.portSpinBox.setProperty("value", 52007)
         self.portSpinBox.setObjectName("portSpinBox")
         self.horizontalLayout.addWidget(self.portSpinBox)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
         self.thrLabel = QtWidgets.QLabel(AutoDetCfgDialog)
         self.thrLabel.setObjectName("thrLabel")
         self.horizontalLayout.addWidget(self.thrLabel)
@@ -54,6 +59,15 @@ class Ui_AutoDetCfgDialog(object):
         self.thrDoubleSpinBox.setProperty("value", 0.3)
         self.thrDoubleSpinBox.setObjectName("thrDoubleSpinBox")
         self.horizontalLayout.addWidget(self.thrDoubleSpinBox)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem1)
+        self.label = QtWidgets.QLabel(AutoDetCfgDialog)
+        self.label.setObjectName("label")
+        self.horizontalLayout.addWidget(self.label)
+        self.flagSpinBox = QtWidgets.QSpinBox(AutoDetCfgDialog)
+        self.flagSpinBox.setProperty("value", 1)
+        self.flagSpinBox.setObjectName("flagSpinBox")
+        self.horizontalLayout.addWidget(self.flagSpinBox)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
@@ -84,5 +98,6 @@ class Ui_AutoDetCfgDialog(object):
         self.IPLineEdit.setText(_translate("AutoDetCfgDialog", "192.168.0.63"))
         self.portLabel.setText(_translate("AutoDetCfgDialog", "端口:"))
         self.thrLabel.setText(_translate("AutoDetCfgDialog", "默认阈值:"))
+        self.label.setText(_translate("AutoDetCfgDialog", "标志:"))
         self.detClassLabel.setText(_translate("AutoDetCfgDialog", "待检类型和阈值(;分隔类型,=分隔阈值,默认输出所有类型)"))
         self.detClassLineEdit.setText(_translate("AutoDetCfgDialog", "wcaqm,aqmzc=0.6;xy=0.3;bj_bpmh;"))

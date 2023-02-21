@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import os
 
 from PyQt5.QtWidgets import QWidget,QDialog
-from .ui.AutoDetDialog_ui import Ui_AutoDetCfgDialog
+from .ui.ui_AutoDetDialog import Ui_AutoDetCfgDialog
 from PyQt5.QtCore import QThread,pyqtSignal,QByteArray
 from PyQt5.QtGui import QImage
 import grpc
@@ -14,12 +14,13 @@ from .proto.dldetection_pb2_grpc import AiServiceStub
 class AutoDetThread(QThread):
     trigger=pyqtSignal(str,int)
 
-    def __init__(self,img_path,save_dir,host,cls_thr,parent=None):
+    def __init__(self,img_path,save_dir,host,cls_thr,rpc_flag,parent=None):
         super(AutoDetThread,self).__init__(parent)
         self._img_path = img_path
         self._host=host
         self._cls_thr=cls_thr
         self._save_dir=save_dir
+        self._rpc_flag=rpc_flag
 
     def _respo2dict(self,response):
         result=defaultdict(list)
@@ -42,6 +43,7 @@ class AutoDetThread(QThread):
                 img_file.close()  # 文件关闭
                 req=dldetection_pb2.DlRequest()
                 req.imdata=img_b64encode
+                req.type=self._rpc_flag
                 response = stub.DlDetection(req)
                 result_dict=self._respo2dict(response)
                 img=QImage()
@@ -49,6 +51,7 @@ class AutoDetThread(QThread):
                 dump2xml(self._img_path,self._save_dir,img,result_dict)
                 self.trigger.emit(self._img_path,1)
                 print("{} have generated xml".format(self._img_path))
+                print("detect result is:",result_dict)
         except Exception as e:
             print("{} have error:{}".format(self._img_path,e))
             self.trigger.emit(self._img_path,0)
@@ -121,10 +124,12 @@ class AutoDetCfgDialog(QDialog):
 
         self._host=None
         self._class_thr=None
+        self._rpc_flag=None
         if previous_cfg:
             self.ui.IPLineEdit.setText(previous_cfg["host"])
             self.ui.portSpinBox.setValue(int(previous_cfg["port"]))
             self.ui.thrDoubleSpinBox.setValue(0.3)
+            self.ui.flagSpinBox.setValue(previous_cfg['rpc_flag'])
             print(previous_cfg['class_thr'])
             self.ui.detClassLineEdit.setText(self._thrcfg2str(previous_cfg['class_thr']))
 
@@ -154,6 +159,7 @@ class AutoDetCfgDialog(QDialog):
         thr=self.ui.thrDoubleSpinBox.text()
         classes_info=self.ui.detClassLineEdit.text()
         print(classes_info)
+        self._rpc_flag=int(self.ui.flagSpinBox.text())
         self._host=host+":"+port
         self._class_thr=self._deal_classes_info(classes_info,thr)
         super().accept()
@@ -162,7 +168,7 @@ class AutoDetCfgDialog(QDialog):
         super().reject()
 
     def _getCfg(self):
-        return self._host,self._class_thr
+        return self._host,self._class_thr,self._rpc_flag
 
     @classmethod
     def getAutoCfg(cls,parent=None,previous_cfg=None):
