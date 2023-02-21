@@ -1634,17 +1634,18 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     def autoDet(self):
         if self.filePath:
             if not self.rpc_host:
-                self.rpc_host, self.class_thr = AutoDetCfgDialog.getAutoCfg(
+                self.rpc_host, self.class_thr,self.rpc_det_flag = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
             if self.rpc_host:
                 self.autodet_previous_cfg['host'], self.autodet_previous_cfg[
                     'port'] = self.rpc_host.split(":")
                 self.autodet_previous_cfg['class_thr'] = self.class_thr
+                self.autodet_previous_cfg['rpc_flag']=self.rpc_det_flag
                 pprint(self.autodet_previous_cfg['class_thr'])
 
                 # XXX:
                 save_dir=self.defaultSaveDir if self.defaultSaveDir else os.path.split(self.filePath)[0]
-                det_thr = AutoDetThread(self.filePath,save_dir, self.rpc_host,self.class_thr,self)
+                det_thr = AutoDetThread(self.filePath,save_dir, self.rpc_host,self.class_thr,self.rpc_det_flag,self)
                 # XXX fix
                 det_thr.trigger.connect(self.reload_xml)
                 det_thr.start()
