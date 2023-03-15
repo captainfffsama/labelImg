@@ -48,6 +48,19 @@ from libs.autodet import AutoDetThread, AutoDetCfgDialog
 __appname__ = 'labelImg'
 
 
+class FilePathValidator(QValidator):
+
+    def __init__(self, string_model: QStringListModel):
+        self.model = string_model
+        super().__init__()
+
+    def validate(self, s: str, pos):
+        if s in self.model.stringList():
+            return QValidator.State.Acceptable, s, pos
+        else:
+            return QValidator.State.Intermediate, s, pos
+
+
 class WindowMixin(object):
 
     def menu(self, title, actions=None):
@@ -201,12 +214,26 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.fileListView = QListView()
         self.fileListView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.fileListView.setSelectionRectVisible(True)
-        self.fileListView.clicked.connect(self.fileSelect_Slot)
-        self.fileListView.doubleClicked.connect(self.fileSelect_Slot)
+        self.fileListView.clicked.connect(self.fileSelect_slot)
+        self.fileListView.doubleClicked.connect(self.fileSelect_slot)
         self.fileListView.setModel(self.fileListModel)
+
+        self.fileListSearchBox = QComboBox()
+        fileListSearchCompleter = QCompleter()
+        fileListSearchCompleter.setModel(self.fileListModel)
+        fileListSearchCompleter.setFilterMode(QtCore.Qt.MatchContains)
+        fileListSearchCompleter.setCompletionMode(QCompleter.PopupCompletion)
+        self.fileListSearchBox.setModel(self.fileListModel)
+        self.fileListSearchBox.setEditable(True)
+        self.fileListSearchBox.setValidator(
+            FilePathValidator(self.fileListModel))
+        self.fileListSearchBox.setCompleter(fileListSearchCompleter)
+        self.fileListSearchBox.currentIndexChanged.connect(
+            self.fileSearchActivate_slot)
 
         filelistLayout = QVBoxLayout()
         filelistLayout.setContentsMargins(0, 0, 0, 0)
+        filelistLayout.addWidget(self.fileListSearchBox)
         filelistLayout.addWidget(self.fileListView)
 
         fileListContainer = QWidget()
@@ -955,9 +982,14 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             item.setBackground(generateColorByText(text))
             self.setDirty()
 
-    def fileSelect_Slot(self, qModelIndex: QModelIndex):
+    def fileSearchActivate_slot(self, idx: int):
+        if 0<=idx<=self.fileListModel.rowCount():
+            self.fileSelect_slot(self.fileListModel.index(idx))
+
+    def fileSelect_slot(self, qModelIndex: QModelIndex):
         file_path = qModelIndex.data()
         if file_path:
+            self.defaultSaveDir = os.path.split(file_path)[0]
             self.loadFile(file_path)
 
     # Add chris
@@ -1700,7 +1732,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         self.fileListModel.setStringList(ImgList)
         self.filePath = None
-        self.openNextImg()
+        self.fileSelect_slot(self.fileListModel.index(0))
 
     def importDirImages(self, dirpath):
         if not self.mayContinue() or not dirpath:
@@ -1711,8 +1743,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.filePath = None
         ImgList = self.scanAllImages(dirpath)
         self.fileListModel.setStringList(ImgList)
-        self.openNextImg()
-
+        self.fileSelect_slot(self.fileListModel.index(0))
 
     def verifyImg(self, _value=False):
         # Proceding next image without dialog if having any label
@@ -1738,48 +1769,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             if self.defaultSaveDir is not None:
                 if self.forceAutoSaving.isChecked() or self.dirty is True:
                     self.saveFile()
-                if self.isTxt is True:
-                    # FIXME: 当self.filePath不存在时,这里会崩,raise ValueError: None is not in list
-                    curModelIdx=self.fileListView.currentIndex()
-
-                    filename=self.fileListView.model().index(curModelIdx.row()-1).data()
-                    if filename:
-                        self.defaultSaveDir = filename.split(
-                            os.path.basename(filename))[0]
-            else:
-                if self.isTxt is True:
-                    filename = None
-                    if self.filePath is None:
-                        filename = self.fileListView.model().index(0).data()
-                        if filename:
-                            self.defaultSaveDir = filename.split(
-                                os.path.basename(filename))[0]
-                            self.loadFile(filename)
-                    else:
-                        curModelIdx=self.fileListView.currentIndex()
-
-                        filename=self.fileListView.model().index(curModelIdx.row()-1).data()
-                        if filename:
-                            self.defaultSaveDir = filename.split(
-                                os.path.basename(filename))[0]
-                else:
-                    self.changeSavedirDialog()
-                return
 
         if not self.mayContinue():
             return
+        self.fileSearchActivate_slot(self.fileListView.currentIndex().row()-1)
 
-        if self.fileListModel.rowCount() <= 0:
-            return
-
-        if self.filePath is None:
-            return
-
-        curModelIdx=self.fileListView.currentIndex()
-
-        filename=self.fileListView.model().index(curModelIdx.row()-1).data()
-        if filename:
-            self.loadFile(filename)
 
     def openNextImg(self, _value=False):
         # Proceding prev image without dialog if having any label
@@ -1787,46 +1781,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             if self.defaultSaveDir is not None:
                 if self.forceAutoSaving.isChecked() or self.dirty is True:
                     self.saveFile()
-                if self.isTxt is True:
-                    curModelIdx=self.fileListView.currentIndex()
-
-                    filename=self.fileListView.model().index(curModelIdx.row()+1).data()
-                    if filename:
-                        self.defaultSaveDir = filename.split(
-                            os.path.basename(filename))[0]
-            else:
-                if self.isTxt is True:
-                    filename = None
-                    if self.filePath is None:
-                        filename = self.fileListView.model().index(0).data()
-                        if filename:
-                            self.defaultSaveDir = filename.split(
-                                os.path.basename(filename))[0]
-                            self.loadFile(filename)
-                    else:
-                        curModelIdx=self.fileListView.currentIndex()
-
-                        filename=self.fileListView.model().index(curModelIdx.row()+1).data()
-                        if filename:
-                            self.defaultSaveDir = filename.split(
-                                os.path.basename(filename))[0]
-                else:
-                    self.changeSavedirDialog()
-                return
 
         if not self.mayContinue():
             return
 
-        if self.fileListModel.rowCount() <= 0:
-            return
-
-        if self.filePath is None:
-            filename=self.fileListView.model().index(0).data()
-        else:
-            curModelIdx=self.fileListView.currentIndex()
-            filename=self.fileListView.model().index(curModelIdx.row()+1).data()
-        if filename:
-            self.loadFile(filename)
+        self.fileSearchActivate_slot(self.fileListView.currentIndex().row()+1)
 
     def openFile(self, _value=False):
         self.isTxt = False
@@ -2001,7 +1960,6 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.set_format(FORMAT_YOLO)
         tYoloParseReader = YoloReader(txtPath, self.image)
         shapes = tYoloParseReader.getShapes()
-        print(shapes)
         self.loadLabels(shapes)
         self.canvas.verified = tYoloParseReader.verified
 
