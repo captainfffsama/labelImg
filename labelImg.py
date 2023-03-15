@@ -90,6 +90,13 @@ class UtilsFuncMixin(object):
                 return None
         return result
 
+    def getQStringListModelIndex(self, model: QStringListModel,
+                                 value: str) -> Optional[QModelIndex]:
+        if value in model.stringList():
+            return model.index(model.stringList().index(value))
+        else:
+            return None
+
 
 class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
@@ -127,7 +134,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.usingYoloFormat = False
 
         # For loading all image under a directory
-        self.mImgList = []
+        self.fileListModel = QStringListModel(self)
+
         self.dirname = None
         self.labelHist = []  #记录所有标签名称
         self.lastOpenDir = None
@@ -190,12 +198,17 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.dock.setObjectName(getStr('labels'))
         self.dock.setWidget(labelListContainer)
 
-        self.fileListWidget = QListWidget()
-        self.fileListWidget.itemDoubleClicked.connect(
-            self.fileitemDoubleClicked)
+        self.fileListView = QListView()
+        self.fileListView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.fileListView.setSelectionRectVisible(True)
+        self.fileListView.clicked.connect(self.fileSelect_Slot)
+        self.fileListView.doubleClicked.connect(self.fileSelect_Slot)
+        self.fileListView.setModel(self.fileListModel)
+
         filelistLayout = QVBoxLayout()
         filelistLayout.setContentsMargins(0, 0, 0, 0)
-        filelistLayout.addWidget(self.fileListWidget)
+        filelistLayout.addWidget(self.fileListView)
+
         fileListContainer = QWidget()
         fileListContainer.setLayout(filelistLayout)
         self.filedock = QDockWidget(getStr('fileList'), self)
@@ -246,7 +259,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         opentxt = action(getStr('openTxt'), self.openTxt, 'Ctrl+T', 'open',
                          getStr('openTxt'))
 
-        auto_detect = action(getStr('autoDet'), self.autoDet,'Ctrl+D', 'AI',
+        auto_detect = action(getStr('autoDet'), self.autoDet, 'Ctrl+D', 'AI',
                              getStr('autoDet'))
 
         opendir = action(getStr('openDir'), self.openDirDialog, 'Ctrl+u',
@@ -351,7 +364,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                          getStr('showAllBoxDetail'),
                          enabled=False)
         onlyShow = action('单一显示模式', self.setOnlyShow)
-        resetAutoDetCfg=action("重设自动检测配置",self.setAutoDetCfg)
+        resetAutoDetCfg = action("重设自动检测配置", self.setAutoDetCfg)
 
         help = action(getStr('tutorial'), self.showTutorialDialog, None,
                       'help', getStr('tutorialDetail'))
@@ -530,7 +543,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         addActions(self.menus.file,
                    (open, opentxt, opendir, changeSavedir, openAnnotation,
                     self.menus.recentFiles, save, save_format, saveAs, close,
-                    resetAll,resetAutoDetCfg, quit))
+                    resetAll, resetAutoDetCfg, quit))
         addActions(self.menus.help, (help, showInfo))
         addActions(
             self.menus.view,
@@ -942,13 +955,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             item.setBackground(generateColorByText(text))
             self.setDirty()
 
-    # Tzutalin 20160906 : Add file list and dock to move faster
-    def fileitemDoubleClicked(self, item=None):
-        currIndex = self.mImgList.index(ustr(item.text()))
-        if currIndex < len(self.mImgList):
-            filename = self.mImgList[currIndex]
-            if filename:
-                self.loadFile(filename)
+    def fileSelect_Slot(self, qModelIndex: QModelIndex):
+        file_path = qModelIndex.data()
+        if file_path:
+            self.loadFile(file_path)
 
     # Add chris
     def btnstate(self, item=None):
@@ -1270,16 +1280,14 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         # Fix bug: An  index error after select a directory when open a new file.
         unicodeFilePath = ustr(filePath)
         unicodeFilePath = os.path.abspath(unicodeFilePath)
-        # Tzutalin 20160906 : Add file list and dock to move faster
-        # Highlight the file item
-        if unicodeFilePath and self.fileListWidget.count() > 0:
-            if unicodeFilePath in self.mImgList:
-                index = self.mImgList.index(unicodeFilePath)
-                fileWidgetItem = self.fileListWidget.item(index)
-                fileWidgetItem.setSelected(True)
+
+        if unicodeFilePath and self.fileListModel.rowCount() > 0:
+            if unicodeFilePath in self.fileListModel.stringList():
+                self.fileListView.setCurrentIndex(
+                    self.getQStringListModelIndex(self.fileListModel,
+                                                  unicodeFilePath))
             else:
-                self.fileListWidget.clear()
-                self.mImgList.clear()
+                self.fileListModel.setStringList([])
 
         if unicodeFilePath and os.path.exists(unicodeFilePath):
             if LabelFile.isLabelFile(unicodeFilePath):
@@ -1628,24 +1636,27 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.statusBar().show()
 
     def setAutoDetCfg(self):
-        self.rpc_host=None
+        self.rpc_host = None
         self.autoDet()
 
     def autoDet(self):
         if self.filePath:
             if not self.rpc_host:
-                self.rpc_host, self.class_thr,self.rpc_det_flag = AutoDetCfgDialog.getAutoCfg(
+                self.rpc_host, self.class_thr, self.rpc_det_flag = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
             if self.rpc_host:
                 self.autodet_previous_cfg['host'], self.autodet_previous_cfg[
                     'port'] = self.rpc_host.split(":")
                 self.autodet_previous_cfg['class_thr'] = self.class_thr
-                self.autodet_previous_cfg['rpc_flag']=self.rpc_det_flag
+                self.autodet_previous_cfg['rpc_flag'] = self.rpc_det_flag
                 pprint(self.autodet_previous_cfg['class_thr'])
 
                 # XXX:
-                save_dir=self.defaultSaveDir if self.defaultSaveDir else os.path.split(self.filePath)[0]
-                det_thr = AutoDetThread(self.filePath,save_dir, self.rpc_host,self.class_thr,self.rpc_det_flag,self)
+                save_dir = self.defaultSaveDir if self.defaultSaveDir else os.path.split(
+                    self.filePath)[0]
+                det_thr = AutoDetThread(self.filePath, save_dir, self.rpc_host,
+                                        self.class_thr, self.rpc_det_flag,
+                                        self)
                 # XXX fix
                 det_thr.trigger.connect(self.reload_xml)
                 det_thr.start()
@@ -1683,17 +1694,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         self.txtPath = txtFile[0]
         with open(txtFile[0], 'r', encoding='utf-8') as fr:
-            lines = fr.readlines()
+            ImgList = [x.strip() for x in fr.readlines()]
 
         self.defaultSaveDir = None
-        self.fileListWidget.clear()
 
-        new_line = []
-        new_line = list(map(lambda x: x.strip('\n'), lines))
-        self.mImgList = new_line
-        for imgPath in self.mImgList:
-            item = QListWidgetItem(imgPath)
-            self.fileListWidget.addItem(item)
+        self.fileListModel.setStringList(ImgList)
         self.filePath = None
         self.openNextImg()
 
@@ -1704,12 +1709,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.lastOpenDir = dirpath
         self.dirname = dirpath
         self.filePath = None
-        self.fileListWidget.clear()
-        self.mImgList = self.scanAllImages(dirpath)
+        ImgList = self.scanAllImages(dirpath)
+        self.fileListModel.setStringList(ImgList)
         self.openNextImg()
-        for imgPath in self.mImgList:
-            item = QListWidgetItem(imgPath)
-            self.fileListWidget.addItem(item)
+
 
     def verifyImg(self, _value=False):
         # Proceding next image without dialog if having any label
@@ -1737,23 +1740,26 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                     self.saveFile()
                 if self.isTxt is True:
                     # FIXME: 当self.filePath不存在时,这里会崩,raise ValueError: None is not in list
-                    currIndex = self.mImgList.index(self.filePath)
-                    if currIndex - 1 >= 0:
-                        filename = self.mImgList[currIndex - 1]
+                    curModelIdx=self.fileListView.currentIndex()
+
+                    filename=self.fileListView.model().index(curModelIdx.row()-1).data()
+                    if filename:
                         self.defaultSaveDir = filename.split(
                             os.path.basename(filename))[0]
             else:
                 if self.isTxt is True:
                     filename = None
                     if self.filePath is None:
-                        filename = self.mImgList[0]
-                        self.defaultSaveDir = filename.split(
-                            os.path.basename(filename))[0]
-                        self.loadFile(filename)
+                        filename = self.fileListView.model().index(0).data()
+                        if filename:
+                            self.defaultSaveDir = filename.split(
+                                os.path.basename(filename))[0]
+                            self.loadFile(filename)
                     else:
-                        currIndex = self.mImgList.index(self.filePath)
-                        if currIndex - 1 < len(self.mImgList):
-                            filename = self.mImgList[currIndex - 1]
+                        curModelIdx=self.fileListView.currentIndex()
+
+                        filename=self.fileListView.model().index(curModelIdx.row()-1).data()
+                        if filename:
                             self.defaultSaveDir = filename.split(
                                 os.path.basename(filename))[0]
                 else:
@@ -1763,17 +1769,17 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if not self.mayContinue():
             return
 
-        if len(self.mImgList) <= 0:
+        if self.fileListModel.rowCount() <= 0:
             return
 
         if self.filePath is None:
             return
 
-        currIndex = self.mImgList.index(self.filePath)
-        if currIndex - 1 >= 0:
-            filename = self.mImgList[currIndex - 1]
-            if filename:
-                self.loadFile(filename)
+        curModelIdx=self.fileListView.currentIndex()
+
+        filename=self.fileListView.model().index(curModelIdx.row()-1).data()
+        if filename:
+            self.loadFile(filename)
 
     def openNextImg(self, _value=False):
         # Proceding prev image without dialog if having any label
@@ -1782,24 +1788,26 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 if self.forceAutoSaving.isChecked() or self.dirty is True:
                     self.saveFile()
                 if self.isTxt is True:
-                    currIndex = self.mImgList.index(self.filePath)
-                    if currIndex + 1 < len(self.mImgList):
-                        filename = self.mImgList[currIndex + 1]
-                        if filename:
-                            self.defaultSaveDir = filename.split(
-                                os.path.basename(filename))[0]
+                    curModelIdx=self.fileListView.currentIndex()
+
+                    filename=self.fileListView.model().index(curModelIdx.row()+1).data()
+                    if filename:
+                        self.defaultSaveDir = filename.split(
+                            os.path.basename(filename))[0]
             else:
                 if self.isTxt is True:
                     filename = None
                     if self.filePath is None:
-                        filename = self.mImgList[0]
-                        self.defaultSaveDir = filename.split(
-                            os.path.basename(filename))[0]
-                        self.loadFile(filename)
+                        filename = self.fileListView.model().index(0).data()
+                        if filename:
+                            self.defaultSaveDir = filename.split(
+                                os.path.basename(filename))[0]
+                            self.loadFile(filename)
                     else:
-                        currIndex = self.mImgList.index(self.filePath)
-                        if currIndex + 1 < len(self.mImgList):
-                            filename = self.mImgList[currIndex + 1]
+                        curModelIdx=self.fileListView.currentIndex()
+
+                        filename=self.fileListView.model().index(curModelIdx.row()+1).data()
+                        if filename:
                             self.defaultSaveDir = filename.split(
                                 os.path.basename(filename))[0]
                 else:
@@ -1809,45 +1817,15 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if not self.mayContinue():
             return
 
-        if len(self.mImgList) <= 0:
+        if self.fileListModel.rowCount() <= 0:
             return
 
-        filename = None
         if self.filePath is None:
-            filename = self.mImgList[0]
-        else:
-            currIndex = self.mImgList.index(self.filePath)
-            if currIndex + 1 < len(self.mImgList):
-                filename = self.mImgList[currIndex + 1]
-
-        if filename:
-            self.loadFile(filename)
-
-    def openNextImgTxt(self, _value=False):
-        # Proceding prev image without dialog if having any label
-        if self.autoSaving.isChecked():
-            # self.defaultSaveDir = self.filePath.split(os.path.basename(self.filePath))[0]
-            if self.defaultSaveDir is not None:
-                if self.autoSaving.isChecked() or self.dirty is True:
-                    self.saveFile()
-            else:
-                # self.changeSavedirDialog()
-                return
-
-        if not self.mayContinue():
             return
 
-        if len(self.mImgList) <= 0:
-            return
+        curModelIdx=self.fileListView.currentIndex()
 
-        filename = None
-        if self.filePath is None:
-            filename = self.mImgList[0]
-        else:
-            currIndex = self.mImgList.index(self.filePath)
-            if currIndex + 1 < len(self.mImgList):
-                filename = self.mImgList[currIndex + 1]
-
+        filename=self.fileListView.model().index(curModelIdx.row()+1).data()
         if filename:
             self.loadFile(filename)
 
