@@ -1821,11 +1821,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             return
 
         if self.filePath is None:
-            return
-
-        curModelIdx=self.fileListView.currentIndex()
-
-        filename=self.fileListView.model().index(curModelIdx.row()+1).data()
+            filename=self.fileListView.model().index(0).data()
+        else:
+            curModelIdx=self.fileListView.currentIndex()
+            filename=self.fileListView.model().index(curModelIdx.row()+1).data()
         if filename:
             self.loadFile(filename)
 
