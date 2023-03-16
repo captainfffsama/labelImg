@@ -991,6 +991,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if file_path:
             self.defaultSaveDir = os.path.split(file_path)[0]
             self.loadFile(file_path)
+            self.fileListSearchBox.setCurrentText(file_path)
 
     # Add chris
     def btnstate(self, item=None):
