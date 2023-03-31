@@ -2,15 +2,16 @@
 # Create by TzuTaLin <tzu.ta.lin@gmail.com>
 
 try:
-    from PyQt5.QtGui import QImage
+    from PyQt5.QtGui import QImage,QPainter,QPen,QColor,QFont
+    from PyQt5.QtCore import QPoint,Qt
 except ImportError:
-    from PyQt4.QtGui import QImage
-
+    from PyQt4.QtGui import QImage,QPainter,QPen,QColor,QFont
+    from PyQt4.QtCore import QPoint,Qt
 from base64 import b64encode, b64decode
 from libs.pascal_voc_io import PascalVocWriter
 from libs.yolo_io import YOLOWriter
 from libs.pascal_voc_io import XML_EXT
-import os.path
+import os
 import sys
 
 
@@ -28,6 +29,32 @@ class LabelFile(object):
         self.imagePath = None
         self.imageData = None
         self.verified = False
+        self.drawResultImg=False
+
+    def _drawResultImage(self,imagePath:str,shapes,img:QImage=None):
+        if img is None:
+            img = QImage()
+            img.load(imagePath)
+        painter=QPainter(img)
+        # painter.setCompositionMode(QPainter.Comp)
+        painter.setPen(QPen(Qt.green,  5, Qt.SolidLine))
+        for shape in shapes:
+            points = shape['points']
+            label = shape['label']
+            bndbox = LabelFile.convertPoints2BndBox(points)
+            tx,ty,w,h=bndbox[0],bndbox[1],bndbox[2]-bndbox[0],bndbox[3]-bndbox[1]
+            painter.drawRect(tx,ty,w,h)
+            painter.setFont(QFont('SimSun', max(10,w//20)))
+            painter.drawText(QPoint(tx,ty),label)
+
+        dd,filename=os.path.split(imagePath)
+        save_dir=os.path.join(dd,"result_img")
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+
+        img.save(os.path.join(save_dir,filename),"JPG",100)
+
+
 
     def savePascalVocFormat(self, filename, shapes, imagePath, imageData,
                             lineColor=None, fillColor=None, databaseSrc=None, origin_xmlTree=None):
@@ -54,6 +81,8 @@ class LabelFile(object):
             writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label, difficult)
 
         writer.save(targetFile=filename)
+        if self.drawResultImg:
+            self._drawResultImage(imagePath,shapes,image)
         return
 
     def saveYoloFormat(self, filename, shapes, imagePath, imageData, classList,
@@ -81,6 +110,8 @@ class LabelFile(object):
             writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label, difficult)
 
         writer.save(targetFile=filename, classList=classList)
+        if self.drawResultImg:
+            self._drawResultImage(imagePath,shapes,image)
         return
 
     def toggleVerify(self):

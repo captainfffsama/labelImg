@@ -559,6 +559,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             settings.get(SETTING_SHORT_CUT_MODE, False))
         self.shortCutMode.triggered.connect(self.setShortCutMode_slot)
 
+        # 添加生成渲染图的功能
+        self.generateResultImg = QAction('generateResultImg', self)
+        self.generateResultImg.setCheckable(True)
+        self.generateResultImg.setChecked(False)
+
         # Add option to enable/disable labels being displayed at the top of bounding boxes
         self.displayLabelOption = QAction(getStr('displayLabel'), self)
         self.displayLabelOption.setShortcut("Ctrl+Shift+P")
@@ -575,7 +580,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         addActions(
             self.menus.view,
             (self.autoSaving, self.forceAutoSaving, onlyShow,
-             self.singleClassMode, self.shortCutMode, self.displayLabelOption,
+             self.singleClassMode, self.shortCutMode, self.generateResultImg,self.displayLabelOption,
              labels, advancedMode, None, hideAll, showAll, None, zoomIn,
              zoomOut, zoomOrg, None, fitWindow, fitWidth))
 
@@ -1100,6 +1105,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if self.labelFile is None:
             self.labelFile = LabelFile()
             self.labelFile.verified = self.canvas.verified
+
+        self.labelFile.drawResultImg=self.generateResultImg.isChecked()
 
         def format_shape(s):
             return dict(
