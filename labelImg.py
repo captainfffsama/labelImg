@@ -1696,7 +1696,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             if not self.rpc_host:
                 self.autodet_previous_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
-                if self.autoDet_previous_cfg:
+                if self.autodet_previous_cfg:
                     self.rpc_host = self.autodet_previous_cfg[
                         'autoDet_host'] + ":" + self.autodet_previous_cfg[
                             'autoDet_port']
