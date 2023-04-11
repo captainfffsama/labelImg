@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"1\n\x0fZeroShotRequest\x12\x0e\n\x06prompt\x18\x01 \x01(\t\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult2\x8d\x01\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x12\x42\n\x0bZeroShotDet\x12\x1a.aiservice.ZeroShotRequest\x1a\x15.aiservice.DlResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"R\n\x0fZeroShotRequest\x12\x0e\n\x06prompt\x18\x01 \x01(\t\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\x12\x0e\n\x06\x62oxThr\x18\x03 \x01(\x02\x12\x0f\n\x07textThr\x18\x04 \x01(\x02\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult2\x8d\x01\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x12\x42\n\x0bZeroShotDet\x12\x1a.aiservice.ZeroShotRequest\x1a\x15.aiservice.DlResponse\"\x00\x62\x06proto3'
 )
 
 
@@ -86,6 +86,20 @@ _ZEROSHOTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='boxThr', full_name='aiservice.ZeroShotRequest.boxThr', index=2,
+      number=3, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='textThr', full_name='aiservice.ZeroShotRequest.textThr', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -99,7 +113,7 @@ _ZEROSHOTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=75,
-  serialized_end=124,
+  serialized_end=157,
 )
 
 
@@ -151,8 +165,8 @@ _DLBOUNDINGRECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=126,
-  serialized_end=186,
+  serialized_start=159,
+  serialized_end=219,
 )
 
 
@@ -190,8 +204,8 @@ _DLPOINT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=188,
-  serialized_end=219,
+  serialized_start=221,
+  serialized_end=252,
 )
 
 
@@ -222,8 +236,8 @@ _DLMASK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=221,
-  serialized_end=265,
+  serialized_start=254,
+  serialized_end=298,
 )
 
 
@@ -275,8 +289,8 @@ _DLRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=267,
-  serialized_end=383,
+  serialized_start=300,
+  serialized_end=416,
 )
 
 
@@ -307,8 +321,8 @@ _DLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=385,
-  serialized_end=435,
+  serialized_start=418,
+  serialized_end=468,
 )
 
 _DLMASK.fields_by_name['points'].message_type = _DLPOINT
@@ -382,8 +396,8 @@ _AISERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=438,
-  serialized_end=579,
+  serialized_start=471,
+  serialized_end=612,
   methods=[
   _descriptor.MethodDescriptor(
     name='DlDetection',

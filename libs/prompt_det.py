@@ -19,6 +19,8 @@ class PromptDetThread(QThread):
                  img_path,
                  save_dir,
                  host,
+                 box_thr: float,
+                 text_thr: float,
                  prompt_thr: dict,
                  new_cls_dict: dict,
                  parent=None):
@@ -28,6 +30,8 @@ class PromptDetThread(QThread):
         self._cls_thr = prompt_thr
         self._new_cls = new_cls_dict
         self._save_dir = save_dir
+        self._box_thr = box_thr
+        self._text_thr = text_thr
 
     def _respo2dict(self, response):
         result = defaultdict(list)
@@ -51,6 +55,8 @@ class PromptDetThread(QThread):
                 req = dldetection_pb2.ZeroShotRequest()
                 req.prompt = ";".join(self._cls_thr.keys())
                 req.imdata = img_b64encode
+                req.boxThr = self._box_thr
+                req.textThr = self._text_thr
                 response = stub.ZeroShotDet(req)
                 result_dict = self._respo2dict(response)
                 img = QImage()
@@ -138,6 +144,10 @@ class PromptDetCfgDialog(QDialog):
             self.ui.portSpinBox.setValue(int(previous_cfg["promptdet_port"]))
             self.ui.thrDoubleSpinBox.setValue(
                 float(previous_cfg["promptdet_dthr"]))
+            self.ui.boxThrDoubleSpinBox.setValue(
+                float(previous_cfg["promptdet_boxthr"]))
+            self.ui.textThrDoubleSpinBox.setValue(
+                float(previous_cfg["promptdet_textthr"]))
             self.ui.promptLineEdit.setText(
                 self._thrcfg2str(previous_cfg["promptdet_promptdict"]))
             self.ui.classLineEdit.setText(
@@ -166,6 +176,8 @@ class PromptDetCfgDialog(QDialog):
         self._cfg["promptdet_host"] = self.ui.IPLineEdit.text()
         self._cfg["promptdet_port"] = self.ui.portSpinBox.text()
         self._cfg["promptdet_dthr"] = self.ui.thrDoubleSpinBox.text()
+        self._cfg["promptdet_boxthr"]=self.ui.boxThrDoubleSpinBox.text()
+        self._cfg["promptdet_textthr"]=self.ui.textThrDoubleSpinBox.text()
         prompt_info = self.ui.promptLineEdit.text()
         new_class_str = self.ui.classLineEdit.text()
         print(prompt_info)

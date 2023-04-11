@@ -278,7 +278,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         # Actions
         action = partial(newAction, self)
-        quit = action(getStr('quit'), self.close, 'Ctrl+Q', 'quit',
+        quit = action(getStr('quit'), self.close, None, 'quit',
                       getStr('quitApp'))
 
         open = action(getStr('openFile'), self.openFile, 'Ctrl+O', 'open',
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         auto_detect = action(getStr('autoDet'), self.autoDet, 'Ctrl+D', 'AI',
                              getStr('autoDet'))
 
-        prompt_detect = action(getStr('promptDet'), self.promptDet, 'Ctrl+Shift+D', 'cortana',
+        prompt_detect = action(getStr('promptDet'), self.promptDet, 'Ctrl+Q', 'cortana',
                              getStr('cortanaDet'))
 
         opendir = action(getStr('openDir'), self.openDirDialog, 'Ctrl+u',
@@ -396,7 +396,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                          enabled=False)
         onlyShow = action('单一显示模式', self.setOnlyShow)
         resetAutoDetCfg = action("重设自动检测配置", self.setAutoDetCfg)
-        resetPromptDetCfg = action("重设全知检测配置", self.setPromptDetCfg)
+        resetPromptDetCfg = action("重设全知检测配置", self.setPromptDetCfg,"Ctrl+Shift+Q")
 
         help = action(getStr('tutorial'), self.showTutorialDialog, None,
                       'help', getStr('tutorialDetail'))
@@ -1737,6 +1737,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 #FIXME:
                 det_thr = PromptDetThread(
                     self.filePath, save_dir, self.prompt_det_rpc_host,
+                    float(self.prompt_det_previous_cfg['promptdet_boxthr']),
+                    float(self.prompt_det_previous_cfg['promptdet_textthr']),
                     self.prompt_det_previous_cfg['promptdet_promptdict'],
                     self.prompt_det_previous_cfg['promptdet_class_dict'], self)
                 # XXX fix
