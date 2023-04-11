@@ -66,6 +66,8 @@ class PromptDetThread(QThread):
                     self.trigger.emit(self._img_path, 1)
                     print("{} have generated xml".format(self._img_path))
                     print("detect result is:", result_dict)
+                else:
+                    self.trigger.emit(self._img_path, 2)
         except Exception as e:
             print("{} have error:{}".format(self._img_path, e))
             self.trigger.emit(self._img_path, 0)

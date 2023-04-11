@@ -1670,11 +1670,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.importTxtImages(targetDirPath)
 
     def reload_xml(self, img_path, flag):
-        if flag != 1:
-            self.statusBar().showMessage("{} 检测失败".format(img_path))
+        if flag == 0:
+            self.statusBar().showMessage("{} 检测失败,你最好看看控制台信息".format(img_path))
             self.statusBar().show()
             print("{} det failed".format(img_path))
-        else:
+        elif flag==1:
             if self.filePath.strip() == img_path.strip():
                 img_ext = img_path.split('.')[-1]
                 xml_path = img_path.replace('.' + img_ext, '.xml')
@@ -1682,6 +1682,9 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 # self.canvas.clearMask()
                 self.canvas.setFocus(True)
             self.statusBar().showMessage("{} xml生成成功".format(img_path))
+            self.statusBar().show()
+        elif flag==2:
+            self.statusBar().showMessage("{} 啥也没检测到,所以我也不生成标签文件了".format(img_path))
             self.statusBar().show()
 
     def setAutoDetCfg(self):
