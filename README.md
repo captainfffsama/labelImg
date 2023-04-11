@@ -1,4 +1,6 @@
 # Changelog
+# 2023.04.11
+更新全知检测功能,使用方式类似自动检测,快捷键`Ctrl+Shift+D`,需要配合 grounding dino grpc服务使用
 
 ## 2023/03.15
 

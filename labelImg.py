@@ -1693,9 +1693,12 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             if not self.rpc_host:
                 self.autodet_previous_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
-                self.rpc_host = self.autodet_previous_cfg[
-                    'autoDet_host'] + ":" + self.autodet_previous_cfg[
-                        'autoDet_port']
+                if self.autoDet_previous_cfg:
+                    self.rpc_host = self.autodet_previous_cfg[
+                        'autoDet_host'] + ":" + self.autodet_previous_cfg[
+                            'autoDet_port']
+                else:
+                    self.rpc_host=None
             if self.rpc_host:
 
                 # XXX:
@@ -1720,9 +1723,12 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             if not self.prompt_det_rpc_host:
                 self.prompt_det_previous_cfg = PromptDetCfgDialog.getAutoCfg(
                     self, self.prompt_det_previous_cfg)
-                self.prompt_det_rpc_host = self.prompt_det_previous_cfg[
-                    'promptdet_host'] + ":" + self.prompt_det_previous_cfg[
-                        'promptdet_port']
+                if self.prompt_det_previous_cfg:
+                    self.prompt_det_rpc_host = self.prompt_det_previous_cfg[
+                        'promptdet_host'] + ":" + self.prompt_det_previous_cfg[
+                            'promptdet_port']
+                else:
+                    self.prompt_det_rpc_host=None
             if self.prompt_det_rpc_host:
 
                 # XXX:
