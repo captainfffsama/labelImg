@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import os
 
 from PyQt5.QtWidgets import QWidget, QDialog
-from .ui.ui_AutoDetDialog import Ui_AutoDetCfgDialog
+from .ui.ui_PromptDetDialog import Ui_PromptDetDialog
 from PyQt5.QtCore import QThread, pyqtSignal, QByteArray
 from PyQt5.QtGui import QImage
 import grpc
@@ -12,22 +12,22 @@ from .proto import dldetection_pb2
 from .proto.dldetection_pb2_grpc import AiServiceStub
 
 
-class AutoDetThread(QThread):
+class PromptDetThread(QThread):
     trigger = pyqtSignal(str, int)
 
     def __init__(self,
                  img_path,
                  save_dir,
                  host,
-                 cls_thr,
-                 rpc_flag,
+                 prompt_thr: dict,
+                 new_cls_dict: dict,
                  parent=None):
-        super(AutoDetThread, self).__init__(parent)
+        super(PromptDetThread, self).__init__(parent)
         self._img_path = img_path
         self._host = host
-        self._cls_thr = cls_thr
+        self._cls_thr = prompt_thr
+        self._new_cls = new_cls_dict
         self._save_dir = save_dir
-        self._rpc_flag = rpc_flag
 
     def _respo2dict(self, response):
         result = defaultdict(list)
@@ -37,7 +37,7 @@ class AutoDetThread(QThread):
                     continue
                 if i.score < float(self._cls_thr[i.classid]):
                     continue
-            result[i.classid].append(
+            result[self._new_cls.get(i.classid, i.classid)].append(
                 (i.score, i.rect.x, i.rect.y, i.rect.w, i.rect.h))
         return result
 
@@ -48,10 +48,10 @@ class AutoDetThread(QThread):
                 img_file = open(self._img_path, 'rb')  # 二进制打开图片文件
                 img_b64encode = base64.b64encode(img_file.read())  # base64编码
                 img_file.close()  # 文件关闭
-                req = dldetection_pb2.DlRequest()
+                req = dldetection_pb2.ZeroShotRequest()
+                req.prompt = ";".join(self._cls_thr.keys())
                 req.imdata = img_b64encode
-                req.type = self._rpc_flag
-                response = stub.DlDetection(req)
+                response = stub.ZeroShotDet(req)
                 result_dict = self._respo2dict(response)
                 img = QImage()
                 img.loadFromData(QByteArray.fromBase64(img_b64encode))
@@ -124,60 +124,61 @@ def indent(elem, level=0):
     return elem
 
 
-class AutoDetCfgDialog(QDialog):
+class PromptDetCfgDialog(QDialog):
 
     def __init__(self, parent=None, previous_cfg=None):
         super().__init__(parent)
-        self.ui = Ui_AutoDetCfgDialog()
+        self.ui = Ui_PromptDetDialog()
         self.ui.setupUi(self)
 
-        self._cfg ={}
-        self.class_thr={}
+        self._cfg = {}
+
         if previous_cfg:
-            self.ui.IPLineEdit.setText(previous_cfg["autoDet_host"])
-            self.ui.portSpinBox.setValue(int(previous_cfg["autoDet_port"]))
+            self.ui.IPLineEdit.setText(previous_cfg["promptdet_host"])
+            self.ui.portSpinBox.setValue(int(previous_cfg["promptdet_port"]))
             self.ui.thrDoubleSpinBox.setValue(
-                float(previous_cfg['autoDet_default_thr']))
-            self.ui.flagSpinBox.setValue(previous_cfg['autoDet_rpc_flag'])
-            print(previous_cfg['autoDet_class_thr'])
-            self.ui.detClassLineEdit.setText(
-                previous_cfg['autoDet_class_thr'])
+                float(previous_cfg["promptdet_dthr"]))
+            self.ui.promptLineEdit.setText(
+                self._thrcfg2str(previous_cfg["promptdet_promptdict"]))
+            self.ui.classLineEdit.setText(
+                self._thrcfg2str(previous_cfg['promptdet_class_dict']))
 
     def _thrcfg2str(self, cfg_dict: dict):
         line_list = [k + "=" + str(v) for k, v in cfg_dict.items()]
         return ";".join(line_list)
 
-    def _deal_classes_info(self, classes_info: str, dthr):
-        classes_info = classes_info.replace("；", ";").replace("，", ",").strip()
-        semicolon_list = classes_info.split(";")
+    def _str2thrdict(self, ss: str, default_v=None):
+        ss = ss.replace("；", ";").replace("，", ",").strip()
+        semicolon_list = ss.split(";")
         result = {}
         for i in semicolon_list:
-            s = dthr
             if not i:
                 continue
+            s = default_v
             c_t = i.split("=")
             if len(c_t) == 2 and c_t[-1]:
                 s = c_t[-1]
-            for j in c_t[0].split(","):
-                if j:
-                    result[j] = s
+            if s is not None:
+                result[c_t[0]] = s
         return result
 
     def accept(self):
-        self._cfg["autoDet_host"] = self.ui.IPLineEdit.text()
-        self._cfg["autoDet_port"] = self.ui.portSpinBox.text()
-        self._cfg['autoDet_default_thr'] = self.ui.thrDoubleSpinBox.text()
-        self._cfg['autoDet_class_thr'] = self.ui.detClassLineEdit.text(
-        ).replace("；", ";").replace("，", ",").strip()
-        self._cfg['autoDet_rpc_flag'] = (self.ui.flagSpinBox.text())
-        self.class_thr = self._deal_classes_info(
-            self._cfg['autoDet_class_thr'], self._cfg['autoDet_default_thr'])
+        self._cfg["promptdet_host"] = self.ui.IPLineEdit.text()
+        self._cfg["promptdet_port"] = self.ui.portSpinBox.text()
+        self._cfg["promptdet_dthr"] = self.ui.thrDoubleSpinBox.text()
+        prompt_info = self.ui.promptLineEdit.text()
+        new_class_str = self.ui.classLineEdit.text()
+        print(prompt_info)
+        self._cfg["promptdet_promptdict"] = self._str2thrdict(
+            prompt_info, float(self._cfg["promptdet_dthr"]))
+        self._cfg['promptdet_class_dict'] = self._str2thrdict(
+            new_class_str, None)
         super().accept()
 
     def reject(self):
         super().reject()
 
-    def _getCfg(self) -> dict:
+    def _getCfg(self):
         return self._cfg
 
     @classmethod
@@ -187,14 +188,14 @@ class AutoDetCfgDialog(QDialog):
         # if a== QDialog.Accepted:
         # elif a==QDialog.rejected:
         # else:
-        return dialog._getCfg(),dialog.class_thr
+        return dialog._getCfg()
 
 
 if __name__ == '__main__':
     from PyQt5 import QtWidgets
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    a = AutoDetCfgDialog.getAutoCfg()
+    a = PromptDetCfgDialog.getAutoCfg()
     print(a)
     # base_w=AutoDetCfgDialog()
     # base_w.show()

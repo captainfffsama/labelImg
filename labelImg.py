@@ -44,6 +44,7 @@ from libs.yolo_io import TXT_EXT
 from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 from libs.autodet import AutoDetThread, AutoDetCfgDialog
+from libs.prompt_det import PromptDetCfgDialog, PromptDetThread
 
 __appname__ = 'labelImg'
 
@@ -289,6 +290,9 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         auto_detect = action(getStr('autoDet'), self.autoDet, 'Ctrl+D', 'AI',
                              getStr('autoDet'))
 
+        prompt_detect = action(getStr('promptDet'), self.promptDet, 'Ctrl+Shift+D', 'cortana',
+                             getStr('cortanaDet'))
+
         opendir = action(getStr('openDir'), self.openDirDialog, 'Ctrl+u',
                          'open', getStr('openDir'))
 
@@ -392,6 +396,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                          enabled=False)
         onlyShow = action('单一显示模式', self.setOnlyShow)
         resetAutoDetCfg = action("重设自动检测配置", self.setAutoDetCfg)
+        resetPromptDetCfg = action("重设全知检测配置", self.setPromptDetCfg)
 
         help = action(getStr('tutorial'), self.showTutorialDialog, None,
                       'help', getStr('tutorialDetail'))
@@ -575,14 +580,14 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         addActions(self.menus.file,
                    (open, opentxt, opendir, changeSavedir, openAnnotation,
                     self.menus.recentFiles, save, save_format, saveAs, close,
-                    resetAll, resetAutoDetCfg, quit))
+                    resetAll, resetAutoDetCfg,resetPromptDetCfg, quit))
         addActions(self.menus.help, (help, showInfo))
-        addActions(
-            self.menus.view,
-            (self.autoSaving, self.forceAutoSaving, onlyShow,
-             self.singleClassMode, self.shortCutMode, self.generateResultImg,self.displayLabelOption,
-             labels, advancedMode, None, hideAll, showAll, None, zoomIn,
-             zoomOut, zoomOrg, None, fitWindow, fitWidth))
+        addActions(self.menus.view,
+                   (self.autoSaving, self.forceAutoSaving, onlyShow,
+                    self.singleClassMode, self.shortCutMode,
+                    self.generateResultImg, self.displayLabelOption, labels,
+                    advancedMode, None, hideAll, showAll, None, zoomIn,
+                    zoomOut, zoomOrg, None, fitWindow, fitWidth))
 
         self.menus.file.aboutToShow.connect(self.updateFileMenu)
 
@@ -595,13 +600,13 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (open, opentxt, opendir, changeSavedir,
                                  openNextImg, openPrevImg, verify, save,
-                                 save_format, auto_detect, None, create, copy,
+                                 save_format, auto_detect, prompt_detect, None, create, copy,
                                  delete, None, zoomIn, zoom, zoomOut,
                                  fitWindow, fitWidth)
 
         self.actions.advanced = (open, opentxt, opendir, changeSavedir,
                                  openNextImg, openPrevImg, save, save_format,
-                                 auto_detect, None, createMode, editMode, None,
+                                 auto_detect,  prompt_detect,None, createMode, editMode, None,
                                  hideAll, showAll)
 
         self.statusBar().showMessage('%s started.' % __appname__)
@@ -620,6 +625,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.difficult = False
         self.rpc_host = None
         self.autodet_previous_cfg = {}
+
+        #prompt det member
+        self.prompt_det_rpc_host = None
+        self.prompt_det_previous_cfg = {}
 
         ## Fix the compatible issue for qt4 and qt5. Convert the QStringList to python list
         if settings.get(SETTING_RECENT_FILES):
@@ -988,7 +997,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.setDirty()
 
     def fileSearchActivate_slot(self, idx: int):
-        if 0<=idx<=self.fileListModel.rowCount():
+        if 0 <= idx <= self.fileListModel.rowCount():
             self.fileSelect_slot(self.fileListModel.index(idx))
 
     def fileSelect_slot(self, qModelIndex: QModelIndex):
@@ -1106,7 +1115,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.labelFile = LabelFile()
             self.labelFile.verified = self.canvas.verified
 
-        self.labelFile.drawResultImg=self.generateResultImg.isChecked()
+        self.labelFile.drawResultImg = self.generateResultImg.isChecked()
 
         def format_shape(s):
             return dict(
@@ -1682,21 +1691,48 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     def autoDet(self):
         if self.filePath:
             if not self.rpc_host:
-                self.rpc_host, self.class_thr, self.rpc_det_flag = AutoDetCfgDialog.getAutoCfg(
+                self.autodet_previous_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
+                self.rpc_host = self.autodet_previous_cfg[
+                    'autoDet_host'] + ":" + self.autodet_previous_cfg[
+                        'autoDet_port']
             if self.rpc_host:
-                self.autodet_previous_cfg['host'], self.autodet_previous_cfg[
-                    'port'] = self.rpc_host.split(":")
-                self.autodet_previous_cfg['class_thr'] = self.class_thr
-                self.autodet_previous_cfg['rpc_flag'] = self.rpc_det_flag
-                pprint(self.autodet_previous_cfg['class_thr'])
 
                 # XXX:
                 save_dir = self.defaultSaveDir if self.defaultSaveDir else os.path.split(
                     self.filePath)[0]
-                det_thr = AutoDetThread(self.filePath, save_dir, self.rpc_host,
-                                        self.class_thr, self.rpc_det_flag,
-                                        self)
+                det_thr = AutoDetThread(
+                    self.filePath, save_dir, self.rpc_host, self.class_thr,
+                    self.autodet_previous_cfg['autoDet_rpc_flag'], self)
+                # XXX fix
+                det_thr.trigger.connect(self.reload_xml)
+                det_thr.start()
+
+        else:
+            error = QMessageBox.critical(self, "拍头", "没读图片进来啊,咋检测?")
+
+    def setPromptDetCfg(self):
+        self.prompt_det_rpc_host = None
+        self.promptDet()
+
+    def promptDet(self):
+        if self.filePath:
+            if not self.prompt_det_rpc_host:
+                self.prompt_det_previous_cfg = PromptDetCfgDialog.getAutoCfg(
+                    self, self.prompt_det_previous_cfg)
+                self.prompt_det_rpc_host = self.prompt_det_previous_cfg[
+                    'promptdet_host'] + ":" + self.prompt_det_previous_cfg[
+                        'promptdet_port']
+            if self.prompt_det_rpc_host:
+
+                # XXX:
+                save_dir = self.defaultSaveDir if self.defaultSaveDir else os.path.split(
+                    self.filePath)[0]
+                #FIXME:
+                det_thr = PromptDetThread(
+                    self.filePath, save_dir, self.prompt_det_rpc_host,
+                    self.prompt_det_previous_cfg['promptdet_promptdict'],
+                    self.prompt_det_previous_cfg['promptdet_class_dict'], self)
                 # XXX fix
                 det_thr.trigger.connect(self.reload_xml)
                 det_thr.start()
@@ -1780,8 +1816,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         if not self.mayContinue():
             return
-        self.fileSearchActivate_slot(self.fileListView.currentIndex().row()-1)
-
+        self.fileSearchActivate_slot(self.fileListView.currentIndex().row() -
+                                     1)
 
     def openNextImg(self, _value=False):
         # Proceding prev image without dialog if having any label
@@ -1793,7 +1829,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         if not self.mayContinue():
             return
 
-        self.fileSearchActivate_slot(self.fileListView.currentIndex().row()+1)
+        self.fileSearchActivate_slot(self.fileListView.currentIndex().row() +
+                                     1)
 
     def openFile(self, _value=False):
         self.isTxt = False

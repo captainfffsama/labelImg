@@ -4,11 +4,17 @@ package aiservice;
 
 service AiService {
   rpc DlDetection (DlRequest) returns (DlResponse) {} // 深度学习检测服务
+  rpc ZeroShotDet (ZeroShotRequest) returns (DlResponse) {} //
 }
 
 message DlRequest {
   int32 type = 1; // 模型类型
   bytes imdata = 2; // 图像二进制数据-base64编码
+}
+
+message ZeroShotRequest {
+    string prompt=1;
+    bytes imdata = 2;
 }
 
 message DlBoundingRect{

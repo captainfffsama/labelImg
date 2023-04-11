@@ -3,7 +3,6 @@
 # source: dldetection.proto
 """Generated protocol buffer code."""
 from google.protobuf import descriptor as _descriptor
-from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -14,22 +13,330 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult2I\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor.FileDescriptor(
+  name='dldetection.proto',
+  package='aiservice',
+  syntax='proto3',
+  serialized_options=None,
+  create_key=_descriptor._internal_create_key,
+  serialized_pb=b'\n\x11\x64ldetection.proto\x12\taiservice\")\n\tDlRequest\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"1\n\x0fZeroShotRequest\x12\x0e\n\x06prompt\x18\x01 \x01(\t\x12\x0e\n\x06imdata\x18\x02 \x01(\x0c\"<\n\x0e\x44lBoundingRect\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\t\n\x01w\x18\x03 \x01(\x05\x12\t\n\x01h\x18\x04 \x01(\x05\"\x1f\n\x07\x44lPoint\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\",\n\x06\x44lMask\x12\"\n\x06points\x18\x01 \x03(\x0b\x32\x12.aiservice.DlPoint\"t\n\x08\x44lResult\x12\x0f\n\x07\x63lassid\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\'\n\x04rect\x18\x03 \x01(\x0b\x32\x19.aiservice.DlBoundingRect\x12\x1f\n\x04mask\x18\x04 \x01(\x0b\x32\x11.aiservice.DlMask\"2\n\nDlResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.aiservice.DlResult2\x8d\x01\n\tAiService\x12<\n\x0b\x44lDetection\x12\x14.aiservice.DlRequest\x1a\x15.aiservice.DlResponse\"\x00\x12\x42\n\x0bZeroShotDet\x12\x1a.aiservice.ZeroShotRequest\x1a\x15.aiservice.DlResponse\"\x00\x62\x06proto3'
+)
 
 
 
-_DLREQUEST = DESCRIPTOR.message_types_by_name['DlRequest']
-_DLBOUNDINGRECT = DESCRIPTOR.message_types_by_name['DlBoundingRect']
-_DLPOINT = DESCRIPTOR.message_types_by_name['DlPoint']
-_DLMASK = DESCRIPTOR.message_types_by_name['DlMask']
-_DLRESULT = DESCRIPTOR.message_types_by_name['DlResult']
-_DLRESPONSE = DESCRIPTOR.message_types_by_name['DlResponse']
+
+_DLREQUEST = _descriptor.Descriptor(
+  name='DlRequest',
+  full_name='aiservice.DlRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='aiservice.DlRequest.type', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='imdata', full_name='aiservice.DlRequest.imdata', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=32,
+  serialized_end=73,
+)
+
+
+_ZEROSHOTREQUEST = _descriptor.Descriptor(
+  name='ZeroShotRequest',
+  full_name='aiservice.ZeroShotRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='prompt', full_name='aiservice.ZeroShotRequest.prompt', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='imdata', full_name='aiservice.ZeroShotRequest.imdata', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=75,
+  serialized_end=124,
+)
+
+
+_DLBOUNDINGRECT = _descriptor.Descriptor(
+  name='DlBoundingRect',
+  full_name='aiservice.DlBoundingRect',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='x', full_name='aiservice.DlBoundingRect.x', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='y', full_name='aiservice.DlBoundingRect.y', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='w', full_name='aiservice.DlBoundingRect.w', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='h', full_name='aiservice.DlBoundingRect.h', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=126,
+  serialized_end=186,
+)
+
+
+_DLPOINT = _descriptor.Descriptor(
+  name='DlPoint',
+  full_name='aiservice.DlPoint',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='x', full_name='aiservice.DlPoint.x', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='y', full_name='aiservice.DlPoint.y', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=188,
+  serialized_end=219,
+)
+
+
+_DLMASK = _descriptor.Descriptor(
+  name='DlMask',
+  full_name='aiservice.DlMask',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='points', full_name='aiservice.DlMask.points', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=221,
+  serialized_end=265,
+)
+
+
+_DLRESULT = _descriptor.Descriptor(
+  name='DlResult',
+  full_name='aiservice.DlResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='classid', full_name='aiservice.DlResult.classid', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='score', full_name='aiservice.DlResult.score', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='rect', full_name='aiservice.DlResult.rect', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='mask', full_name='aiservice.DlResult.mask', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=267,
+  serialized_end=383,
+)
+
+
+_DLRESPONSE = _descriptor.Descriptor(
+  name='DlResponse',
+  full_name='aiservice.DlResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='results', full_name='aiservice.DlResponse.results', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=385,
+  serialized_end=435,
+)
+
+_DLMASK.fields_by_name['points'].message_type = _DLPOINT
+_DLRESULT.fields_by_name['rect'].message_type = _DLBOUNDINGRECT
+_DLRESULT.fields_by_name['mask'].message_type = _DLMASK
+_DLRESPONSE.fields_by_name['results'].message_type = _DLRESULT
+DESCRIPTOR.message_types_by_name['DlRequest'] = _DLREQUEST
+DESCRIPTOR.message_types_by_name['ZeroShotRequest'] = _ZEROSHOTREQUEST
+DESCRIPTOR.message_types_by_name['DlBoundingRect'] = _DLBOUNDINGRECT
+DESCRIPTOR.message_types_by_name['DlPoint'] = _DLPOINT
+DESCRIPTOR.message_types_by_name['DlMask'] = _DLMASK
+DESCRIPTOR.message_types_by_name['DlResult'] = _DLRESULT
+DESCRIPTOR.message_types_by_name['DlResponse'] = _DLRESPONSE
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
 DlRequest = _reflection.GeneratedProtocolMessageType('DlRequest', (_message.Message,), {
   'DESCRIPTOR' : _DLREQUEST,
   '__module__' : 'dldetection_pb2'
   # @@protoc_insertion_point(class_scope:aiservice.DlRequest)
   })
 _sym_db.RegisterMessage(DlRequest)
+
+ZeroShotRequest = _reflection.GeneratedProtocolMessageType('ZeroShotRequest', (_message.Message,), {
+  'DESCRIPTOR' : _ZEROSHOTREQUEST,
+  '__module__' : 'dldetection_pb2'
+  # @@protoc_insertion_point(class_scope:aiservice.ZeroShotRequest)
+  })
+_sym_db.RegisterMessage(ZeroShotRequest)
 
 DlBoundingRect = _reflection.GeneratedProtocolMessageType('DlBoundingRect', (_message.Message,), {
   'DESCRIPTOR' : _DLBOUNDINGRECT,
@@ -66,22 +373,41 @@ DlResponse = _reflection.GeneratedProtocolMessageType('DlResponse', (_message.Me
   })
 _sym_db.RegisterMessage(DlResponse)
 
-_AISERVICE = DESCRIPTOR.services_by_name['AiService']
-if _descriptor._USE_C_DESCRIPTORS == False:
 
-  DESCRIPTOR._options = None
-  _DLREQUEST._serialized_start=32
-  _DLREQUEST._serialized_end=73
-  _DLBOUNDINGRECT._serialized_start=75
-  _DLBOUNDINGRECT._serialized_end=135
-  _DLPOINT._serialized_start=137
-  _DLPOINT._serialized_end=168
-  _DLMASK._serialized_start=170
-  _DLMASK._serialized_end=214
-  _DLRESULT._serialized_start=216
-  _DLRESULT._serialized_end=332
-  _DLRESPONSE._serialized_start=334
-  _DLRESPONSE._serialized_end=384
-  _AISERVICE._serialized_start=386
-  _AISERVICE._serialized_end=459
+
+_AISERVICE = _descriptor.ServiceDescriptor(
+  name='AiService',
+  full_name='aiservice.AiService',
+  file=DESCRIPTOR,
+  index=0,
+  serialized_options=None,
+  create_key=_descriptor._internal_create_key,
+  serialized_start=438,
+  serialized_end=579,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='DlDetection',
+    full_name='aiservice.AiService.DlDetection',
+    index=0,
+    containing_service=None,
+    input_type=_DLREQUEST,
+    output_type=_DLRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ZeroShotDet',
+    full_name='aiservice.AiService.ZeroShotDet',
+    index=1,
+    containing_service=None,
+    input_type=_ZEROSHOTREQUEST,
+    output_type=_DLRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_AISERVICE)
+
+DESCRIPTOR.services_by_name['AiService'] = _AISERVICE
+
 # @@protoc_insertion_point(module_scope)
