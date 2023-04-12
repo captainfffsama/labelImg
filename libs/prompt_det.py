@@ -3,6 +3,7 @@ from collections import defaultdict
 import xml.etree.ElementTree as ET
 import os
 
+import traceback
 from PyQt5.QtWidgets import QWidget, QDialog
 from .ui.ui_PromptDetDialog import Ui_PromptDetDialog
 from PyQt5.QtCore import QThread, pyqtSignal, QByteArray
@@ -70,6 +71,8 @@ class PromptDetThread(QThread):
                     self.trigger.emit(self._img_path, 2)
         except Exception as e:
             print("{} have error:{}".format(self._img_path, e))
+
+            print(traceback.format_exc(limit=-1))
             self.trigger.emit(self._img_path, 0)
 
 

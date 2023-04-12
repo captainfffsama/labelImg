@@ -2,6 +2,7 @@ import base64
 from collections import defaultdict
 import xml.etree.ElementTree as ET
 import os
+import traceback
 
 from PyQt5.QtWidgets import QWidget, QDialog
 from .ui.ui_AutoDetDialog import Ui_AutoDetCfgDialog
@@ -42,6 +43,7 @@ class AutoDetThread(QThread):
         return result
 
     def run(self):
+        error_info=None
         try:
             with grpc.insecure_channel(self._host) as channel:
                 stub = AiServiceStub(channel)
@@ -50,7 +52,7 @@ class AutoDetThread(QThread):
                 img_file.close()  # 文件关闭
                 req = dldetection_pb2.DlRequest()
                 req.imdata = img_b64encode
-                req.type = self._rpc_flag
+                req.type = int(self._rpc_flag)
                 response = stub.DlDetection(req)
                 result_dict = self._respo2dict(response)
                 img = QImage()
@@ -64,6 +66,7 @@ class AutoDetThread(QThread):
                     self.trigger.emit(self._img_path, 2)
         except Exception as e:
             print("{} have error:{}".format(self._img_path, e))
+            print(traceback.format_exc(limit=-1))
             self.trigger.emit(self._img_path, 0)
 
 
@@ -140,7 +143,7 @@ class AutoDetCfgDialog(QDialog):
             self.ui.portSpinBox.setValue(int(previous_cfg["autoDet_port"]))
             self.ui.thrDoubleSpinBox.setValue(
                 float(previous_cfg['autoDet_default_thr']))
-            self.ui.flagSpinBox.setValue(previous_cfg['autoDet_rpc_flag'])
+            self.ui.flagSpinBox.setValue(int(previous_cfg['autoDet_rpc_flag']))
             print(previous_cfg['autoDet_class_thr'])
             self.ui.detClassLineEdit.setText(
                 previous_cfg['autoDet_class_thr'])
