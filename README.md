@@ -1,6 +1,12 @@
 # 简介
 LabelImg plus pro max ultra
 
+# windows 编译
+```shell
+pip install pyinstaller
+pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --hidden-import=opencv-python -F -n "labelImg" -c labelImg.py -p ./libs -p ./
+```
+
 # 新增功能说明
 ### 2023/04/11
 更新全知检测功能,使用方式类似自动检测,快捷键`Ctrl+Shift+D`,需要配合 grounding dino grpc服务使用.
