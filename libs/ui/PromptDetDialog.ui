@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>万能检测</string>
+   <string>全知检测</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -38,7 +38,7 @@
         <string>000.000.000.000</string>
        </property>
        <property name="text">
-        <string>192.168.0.63</string>
+        <string>192.168.0.67</string>
        </property>
       </widget>
      </item>
@@ -64,7 +64,7 @@
         <number>1</number>
        </property>
        <property name="value">
-        <number>52007</number>
+        <number>52017</number>
        </property>
       </widget>
      </item>

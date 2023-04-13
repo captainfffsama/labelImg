@@ -34,7 +34,7 @@ class Ui_PromptDetDialog(object):
         self.portSpinBox.setMinimumSize(QtCore.QSize(70, 0))
         self.portSpinBox.setMaximum(99999)
         self.portSpinBox.setSingleStep(1)
-        self.portSpinBox.setProperty("value", 52007)
+        self.portSpinBox.setProperty("value", 52017)
         self.portSpinBox.setObjectName("portSpinBox")
         self.horizontalLayout_2.addWidget(self.portSpinBox)
         self.gridLayout.addLayout(self.horizontalLayout_2, 0, 0, 1, 1)
@@ -106,10 +106,10 @@ class Ui_PromptDetDialog(object):
 
     def retranslateUi(self, PromptDetDialog):
         _translate = QtCore.QCoreApplication.translate
-        PromptDetDialog.setWindowTitle(_translate("PromptDetDialog", "万能检测"))
+        PromptDetDialog.setWindowTitle(_translate("PromptDetDialog", "全知检测"))
         self.IPLabel.setText(_translate("PromptDetDialog", "IP:"))
         self.IPLineEdit.setInputMask(_translate("PromptDetDialog", "000.000.000.000"))
-        self.IPLineEdit.setText(_translate("PromptDetDialog", "192.168.0.63"))
+        self.IPLineEdit.setText(_translate("PromptDetDialog", "192.168.0.67"))
         self.portLabel.setText(_translate("PromptDetDialog", "端口:"))
         self.promptLabel.setText(_translate("PromptDetDialog", "提示词:(仅支持英文,=之后是该词的过滤阈值,使用;分隔)"))
         self.promptLineEdit.setText(_translate("PromptDetDialog", "people=0.3;helmet;dryer"))

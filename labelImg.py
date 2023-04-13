@@ -1694,9 +1694,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     def autoDet(self):
         if self.filePath:
             if not self.rpc_host:
-                self.autodet_previous_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
+                adc_dialog_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
-                if self.autodet_previous_cfg:
+                if adc_dialog_cfg:
+                    self.autodet_previous_cfg=adc_dialog_cfg
                     self.rpc_host = self.autodet_previous_cfg[
                         'autoDet_host'] + ":" + self.autodet_previous_cfg[
                             'autoDet_port']
@@ -1724,20 +1725,19 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     def promptDet(self):
         if self.filePath:
             if not self.prompt_det_rpc_host:
-                self.prompt_det_previous_cfg = PromptDetCfgDialog.getAutoCfg(
+                pdc_dialog_cfg = PromptDetCfgDialog.getAutoCfg(
                     self, self.prompt_det_previous_cfg)
-                if self.prompt_det_previous_cfg:
+                if pdc_dialog_cfg:
+                    self.prompt_det_previous_cfg=pdc_dialog_cfg
                     self.prompt_det_rpc_host = self.prompt_det_previous_cfg[
                         'promptdet_host'] + ":" + self.prompt_det_previous_cfg[
                             'promptdet_port']
                 else:
                     self.prompt_det_rpc_host=None
             if self.prompt_det_rpc_host:
-
                 # XXX:
                 save_dir = self.defaultSaveDir if self.defaultSaveDir else os.path.split(
                     self.filePath)[0]
-                #FIXME:
                 det_thr = PromptDetThread(
                     self.filePath, save_dir, self.prompt_det_rpc_host,
                     float(self.prompt_det_previous_cfg['promptdet_boxthr']),
