@@ -1,13 +1,24 @@
 # 简介
 LabelImg plus pro max ultra
 
+# TODO
+- [ ] 修改全知检测和自动检测的线程使用方式
+
 # windows 编译
 ```shell
 pip install pyinstaller
-pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --hidden-import=opencv-python -F -n "labelImg" -c labelImg.py -p ./libs -p ./
+pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --hidden-import=opencv-python
+--hidden-import=sam_rpc -F -n "labelImg" -c labelImg.py -p ./libs -p ./
 ```
 
 # 新增功能说明
+### 2023/04/26
+结合[SAM](https://github.com/facebookresearch/segment-anything)(需要[sam_rpc](https://github.com/captainfffsama/sam_grpc)),船新标注体验,是兄弟就来标图!
+![SAM模式演示](https://github.com/captainfffsama/MarkDownPics/blob/master/%E5%85%B6%E4%BB%96%E5%9C%B0%E6%96%B9%E5%9B%BE%E7%89%87/new_function.gif?raw=true)
+
+view里面点击`SAM模式`,设置 SAM服务的IP和端口.鼠标变成一个click图片.此时左键是标记点为前景,右键标记点为背景,双击左键完成标记,同时画布切换到普通模式,可以对标注进行编辑.
+单击鼠标滚轮,可以切换再次进入"SAM模式"
+
 ### 2023/04/11
 更新全知检测功能,使用方式类似自动检测,快捷键`Ctrl+Shift+D`,需要配合 grounding dino grpc服务使用.
 对于常见的公开数据集中的类,clip可以较好对齐特征的类,可以设置text阈值高一点,比如0.5,防止误检.
@@ -75,3 +86,5 @@ wcaqm,aqmzc=0.6;xy=0.3;bj_bpmh;
 - 快捷模式和单例模式互斥
 
 **现在记录样本到1~9的txt时,会在最下方的状态栏中提示**
+
+

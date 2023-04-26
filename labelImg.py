@@ -45,6 +45,7 @@ from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 from libs.autodet import AutoDetThread, AutoDetCfgDialog
 from libs.prompt_det import PromptDetCfgDialog, PromptDetThread
+from libs.samdet import SAMModeCfgDialog, SAMThread
 
 __appname__ = 'labelImg'
 
@@ -111,9 +112,10 @@ class UtilsFuncMixin(object):
         else:
             return None
 
-
 class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
+
+    sendCurrentImgPath=pyqtSignal(str)
 
     def __init__(self,
                  defaultFilename=None,
@@ -265,6 +267,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.canvas.shapeMoved.connect(self.setDirty)
         self.canvas.selectionChanged.connect(self.shapeSelectionChanged)
         self.canvas.drawingPolygon.connect(self.toggleDrawingSensitive)
+        self.canvas.send_message_signal.connect(self.status)
 
         self.setCentralWidget(scroll)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock)
@@ -290,8 +293,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         auto_detect = action(getStr('autoDet'), self.autoDet, 'Ctrl+D', 'AI',
                              getStr('autoDet'))
 
-        prompt_detect = action(getStr('promptDet'), self.promptDet, 'Ctrl+Q', 'cortana',
-                             getStr('cortanaDet'))
+        prompt_detect = action(getStr('promptDet'), self.promptDet, 'Ctrl+Q',
+                               'cortana', getStr('cortanaDet'))
 
         opendir = action(getStr('openDir'), self.openDirDialog, 'Ctrl+u',
                          'open', getStr('openDir'))
@@ -396,7 +399,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                          enabled=False)
         onlyShow = action('单一显示模式', self.setOnlyShow)
         resetAutoDetCfg = action("重设自动检测配置", self.setAutoDetCfg)
-        resetPromptDetCfg = action("重设全知检测配置", self.setPromptDetCfg,"Ctrl+Shift+Q")
+        resetPromptDetCfg = action("重设全知检测配置", self.setPromptDetCfg,
+                                   "Ctrl+Shift+Q")
 
         help = action(getStr('tutorial'), self.showTutorialDialog, None,
                       'help', getStr('tutorialDetail'))
@@ -577,14 +581,22 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             settings.get(SETTING_PAINT_LABEL, False))
         self.displayLabelOption.triggered.connect(self.togglePaintLabelsOption)
 
+        self.SAMMode = QAction("SAM模式", self)
+        self.SAMMode.setCheckable(True)
+        self.SAMMode.setChecked(settings.get(SETTING_SAM_MODE, False))
+        self.SAMMode.changed.connect(self.setSAMMode_slot)
+
+        self.currentSAMQThread = None
+        self.sam_cfg = {}
+
         addActions(self.menus.file,
                    (open, opentxt, opendir, changeSavedir, openAnnotation,
                     self.menus.recentFiles, save, save_format, saveAs, close,
-                    resetAll, resetAutoDetCfg,resetPromptDetCfg, quit))
+                    resetAll, resetAutoDetCfg, resetPromptDetCfg, quit))
         addActions(self.menus.help, (help, showInfo))
         addActions(self.menus.view,
                    (self.autoSaving, self.forceAutoSaving, onlyShow,
-                    self.singleClassMode, self.shortCutMode,
+                    self.SAMMode, self.singleClassMode, self.shortCutMode,
                     self.generateResultImg, self.displayLabelOption, labels,
                     advancedMode, None, hideAll, showAll, None, zoomIn,
                     zoomOut, zoomOrg, None, fitWindow, fitWidth))
@@ -600,14 +612,14 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (open, opentxt, opendir, changeSavedir,
                                  openNextImg, openPrevImg, verify, save,
-                                 save_format, auto_detect, prompt_detect, None, create, copy,
-                                 delete, None, zoomIn, zoom, zoomOut,
-                                 fitWindow, fitWidth)
+                                 save_format, auto_detect, prompt_detect, None,
+                                 create, copy, delete, None, zoomIn, zoom,
+                                 zoomOut, fitWindow, fitWidth)
 
         self.actions.advanced = (open, opentxt, opendir, changeSavedir,
                                  openNextImg, openPrevImg, save, save_format,
-                                 auto_detect,  prompt_detect,None, createMode, editMode, None,
-                                 hideAll, showAll)
+                                 auto_detect, prompt_detect, None, createMode,
+                                 editMode, None, hideAll, showAll)
 
         self.statusBar().showMessage('%s started.' % __appname__)
         self.statusBar().show()
@@ -699,6 +711,10 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         # Open Dir if deafult file
         if self.filePath and os.path.isdir(self.filePath):
             self.openDirDialog(dirpath=self.filePath, silent=True)
+
+    def setSAMModel_slot(self):
+        if self.SAMMode.isChecked():
+            pass
 
     def saveErrImg(self):
         if not self.imgPath:
@@ -1241,7 +1257,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.actions.fitWidth.setChecked(False)
         self.actions.fitWindow.setChecked(False)
         self.zoomMode = self.MANUAL_ZOOM
-        self.zoomWidget.setValue(value)
+        self.zoomWidget.setValue(int(value))
 
     def addZoom(self, increment=10):
         self.setZoom(self.zoomWidget.value() + increment)
@@ -1295,8 +1311,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         new_h_bar_value = h_bar.value() + move_x * d_h_bar_max
         new_v_bar_value = v_bar.value() + move_y * d_v_bar_max
 
-        h_bar.setValue(new_h_bar_value)
-        v_bar.setValue(new_v_bar_value)
+        h_bar.setValue(int(new_h_bar_value))
+        v_bar.setValue(int(new_v_bar_value))
 
     def setFitWindow(self, value=True):
         if value:
@@ -1373,6 +1389,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.image = image
             self.filePath = unicodeFilePath
             self.canvas.loadPixmap(QPixmap.fromImage(image))
+            if self.currentSAMQThread is not None:
+                self.sendCurrentImgPath.emit(self.filePath)
             if self.labelFile:
                 self.loadLabels(self.labelFile.shapes)
             self.setClean()
@@ -1413,6 +1431,9 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                                     1).setSelected(True)
 
             self.canvas.setFocus(True)
+            if self.SAMMode.isChecked():
+                self.canvas.setEditing(False)
+                self.canvas.sam_open=True
             return True
         else:
             #修改filePath不存在时，保存错误图片路径到err_img_path.txt中
@@ -1674,7 +1695,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.statusBar().showMessage("{} 检测失败,你最好看看控制台信息".format(img_path))
             self.statusBar().show()
             print("{} det failed".format(img_path))
-        elif flag==1:
+        elif flag == 1:
             if self.filePath.strip() == img_path.strip():
                 img_ext = img_path.split('.')[-1]
                 xml_path = img_path.replace('.' + img_ext, '.xml')
@@ -1683,8 +1704,9 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 self.canvas.setFocus(True)
             self.statusBar().showMessage("{} xml生成成功".format(img_path))
             self.statusBar().show()
-        elif flag==2:
-            self.statusBar().showMessage("{} 啥也没检测到,所以我也不生成标签文件了".format(img_path))
+        elif flag == 2:
+            self.statusBar().showMessage(
+                "{} 啥也没检测到,所以我也不生成标签文件了".format(img_path))
             self.statusBar().show()
 
     def setAutoDetCfg(self):
@@ -1697,12 +1719,12 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 adc_dialog_cfg, self.class_thr = AutoDetCfgDialog.getAutoCfg(
                     self, self.autodet_previous_cfg)
                 if adc_dialog_cfg:
-                    self.autodet_previous_cfg=adc_dialog_cfg
+                    self.autodet_previous_cfg = adc_dialog_cfg
                     self.rpc_host = self.autodet_previous_cfg[
                         'autoDet_host'] + ":" + self.autodet_previous_cfg[
                             'autoDet_port']
                 else:
-                    self.rpc_host=None
+                    self.rpc_host = None
             if self.rpc_host:
 
                 # XXX:
@@ -1728,12 +1750,12 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 pdc_dialog_cfg = PromptDetCfgDialog.getAutoCfg(
                     self, self.prompt_det_previous_cfg)
                 if pdc_dialog_cfg:
-                    self.prompt_det_previous_cfg=pdc_dialog_cfg
+                    self.prompt_det_previous_cfg = pdc_dialog_cfg
                     self.prompt_det_rpc_host = self.prompt_det_previous_cfg[
                         'promptdet_host'] + ":" + self.prompt_det_previous_cfg[
                             'promptdet_port']
                 else:
-                    self.prompt_det_rpc_host=None
+                    self.prompt_det_rpc_host = None
             if self.prompt_det_rpc_host:
                 # XXX:
                 save_dir = self.defaultSaveDir if self.defaultSaveDir else os.path.split(
@@ -1750,6 +1772,50 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         else:
             error = QMessageBox.critical(self, "拍头", "没读图片进来啊,咋检测?")
+
+    def setSAMMode_slot(self):
+        if self.filePath:
+            if self.SAMMode.isChecked():
+                sam_cfg = SAMModeCfgDialog.getAutoCfg(self, self.sam_cfg)
+                if sam_cfg:
+                    self.sam_cfg = sam_cfg
+                    self._openSAMMode(self.sam_cfg['host'], self.sam_cfg['port'])
+
+                    print("Main thread", QThread.currentThread())
+                    return
+        else:
+            error = QMessageBox.critical(self, "拍头", "没读图片进来啊,咋检测?")
+        self._closeSAMMode()
+
+    def _openSAMMode(self, host, port):
+        if self.currentSAMQThread is not None:
+            self.currentSAMQThread.quit()
+            self.currentSAMQThread = None
+        self.currentSAMQThread = SAMThread(host, port)
+        #TODO: connet work slot
+        self.sendCurrentImgPath.connect(self.currentSAMQThread.worker.reset_img_info)
+        self.canvas.sam_send_points_signal.connect(self.currentSAMQThread.worker.get_mask)
+
+        self.currentSAMQThread.worker.send_message_signal.connect(self.status)
+        self.currentSAMQThread.worker.send_mask_signal.connect(self.canvas.setMaskShape)
+        self.currentSAMQThread.start()
+        self.sendCurrentImgPath.emit(self.filePath)
+
+        self.canvas.sam_open=True
+        self.canvas.recover_sam_model()
+
+    def _closeSAMMode(self):
+        self.SAMMode.setChecked(False)
+        self.canvas.sam_open=False
+
+        if self.currentSAMQThread is not None:
+            self.sendCurrentImgPath.disconnect(self.currentSAMQThread.worker.reset_img_info)
+            self.canvas.sam_send_points_signal.disconnect(self.currentSAMQThread.worker.get_mask)
+
+            self.currentSAMQThread.worker.send_message_signal.disconnect(self.status)
+            self.currentSAMQThread.worker.send_mask_signal.disconnect(self.canvas.setMaskShape)
+            self.currentSAMQThread.quit()
+            self.currentSAMQThread = None
 
     def openDirDialog(self, _value=False, dirpath=None, silent=False):
         self.isTxt = False

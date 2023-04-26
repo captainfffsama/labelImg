@@ -75,6 +75,9 @@ class PromptDetThread(QThread):
             print(traceback.format_exc(limit=-1))
             self.trigger.emit(self._img_path, 0)
 
+    def __del__(self):
+        self.wait()
+
 
 def dump2xml(img_path: str, save_dir: str, img: QImage, obj_info):
     img_name, img_ext = os.path.basename(img_path).split('.')
