@@ -1805,7 +1805,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.canvas.recover_sam_model()
 
     def _closeSAMMode(self):
-        self.SAMMode.setChecked(False)
+        self.canvas.reset_sam_model()
         self.canvas.sam_open=False
 
         if self.currentSAMQThread is not None:

@@ -7,8 +7,7 @@ LabelImg plus pro max ultra
 # windows 编译
 ```shell
 pip install pyinstaller
-pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --hidden-import=opencv-python
---hidden-import=sam_rpc -F -n "labelImg" -c labelImg.py -p ./libs -p ./
+pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --hidden-import=opencv-python-headless --hidden-import=sam-grpc -F -n "labelImg" -c labelImg.py -p ./libs -p ./
 ```
 
 # 新增功能说明
