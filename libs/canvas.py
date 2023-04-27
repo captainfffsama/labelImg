@@ -329,6 +329,7 @@ class Canvas(QWidget):
                     self.recover_sam_model()
                 else:
                     self.reset_sam_model()
+                self.repaint()
 
     def mouseReleaseEvent(self, ev):
         if not self.is_sam_open:
