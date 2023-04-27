@@ -90,6 +90,8 @@ class Canvas(QWidget):
         self._pause_sam_model = False
         self.setEditing(False)
         self.send_message_signal.emit("开启sam模式", 5000)
+        self.sam_mask = MaskShape()
+        self.sam_points = []
         self.overrideCursor(self.CURSOR_C1)
 
     @property
