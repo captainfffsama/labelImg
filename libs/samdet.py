@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-04-24 18:21:59
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-04-28 10:17:39
+@LastEditTime: 2023-04-28 11:59:27
 @FilePath: /labelImg/libs/samdet.py
 @Description:
 '''
@@ -38,27 +38,29 @@ class SAMWorker(QObject):
         print("worker thread:", QThread.currentThread())
 
     def reset_img_info(self, img_path) -> bool:
-        try:
-            self.mask_cache = None
-            self.current_img_path = img_path
-            current_img = cv2.imread(img_path)
-            self.img_ori_hw=current_img.shape[:2][::-1]
-            if max(current_img.shape)>self.img_max_size:
-                self.img_scale=self.img_max_size/max(current_img.shape)
-                current_img=cv2.resize(current_img,None,fx=self.img_scale,fy=self.img_scale)
-            else:
-                self.img_scale=1
-            with self.client:
-                self.current_img_embedding = self.client.SAMGetImageEmbeddingUseCache(
-                    current_img)
-            self.send_message_signal.emit("获取图片嵌入成功", 5000)
-            return True
-        except:
-            self.current_img_path = None
-            self.current_img_embedding = None
-            self.mask_cache = None
-            self.send_message_signal.emit("获取图片嵌入失败", 5000)
-            return False
+        if self.current_img_path!=img_path:
+            try:
+                self.mask_cache = None
+                self.current_img_path = img_path
+                current_img = cv2.imread(img_path)
+                self.img_ori_hw=current_img.shape[:2][::-1]
+                if max(current_img.shape)>self.img_max_size:
+                    self.img_scale=self.img_max_size/max(current_img.shape)
+                    current_img=cv2.resize(current_img,None,fx=self.img_scale,fy=self.img_scale)
+                else:
+                    self.img_scale=1
+                with self.client:
+                    self.current_img_embedding = self.client.SAMGetImageEmbeddingUseCache(
+                        current_img)
+                self.send_message_signal.emit("获取图片嵌入成功", 5000)
+                return True
+            except:
+                self.current_img_path = None
+                self.current_img_embedding = None
+                self.mask_cache = None
+                self.send_message_signal.emit("获取图片嵌入失败", 5000)
+                return False
+        return True
 
     def _sam_get_mask(self,img_path,points, point_type, use_cache=True):
         try:
