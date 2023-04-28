@@ -115,8 +115,6 @@ class UtilsFuncMixin(object):
 class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
 
-    sendCurrentImgPath=pyqtSignal(str)
-
     def __init__(self,
                  defaultFilename=None,
                  defaultPrefdefClassFile=None,
@@ -1377,6 +1375,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
                 self.labelFile = None
                 self.canvas.verified = False
 
+            print("imgdata:",unicodeFilePath)
             image = QImage.fromData(self.imageData)
             if image.isNull():
                 self.errorMessage(
@@ -1388,9 +1387,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.status("Loaded %s" % os.path.basename(unicodeFilePath))
             self.image = image
             self.filePath = unicodeFilePath
+            self.canvas.current_img_path=unicodeFilePath
             self.canvas.loadPixmap(QPixmap.fromImage(image))
-            if self.currentSAMQThread is not None:
-                self.sendCurrentImgPath.emit(self.filePath)
             if self.labelFile:
                 self.loadLabels(self.labelFile.shapes)
             self.setClean()
@@ -1793,13 +1791,12 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
             self.currentSAMQThread = None
         self.currentSAMQThread = SAMThread(host, port)
         #TODO: connet work slot
-        self.sendCurrentImgPath.connect(self.currentSAMQThread.worker.reset_img_info)
-        self.canvas.sam_send_points_signal.connect(self.currentSAMQThread.worker.get_mask)
+        self.canvas.sam_send_points_signal.connect(self.currentSAMQThread.worker.sam_work)
 
         self.currentSAMQThread.worker.send_message_signal.connect(self.status)
         self.currentSAMQThread.worker.send_mask_signal.connect(self.canvas.setMaskShape)
+        self.canvas.send_img_path_signal.connect(self.currentSAMQThread.worker.reset_img_info)
         self.currentSAMQThread.start()
-        self.sendCurrentImgPath.emit(self.filePath)
 
         self.canvas.sam_open=True
         self.canvas.recover_sam_model()
@@ -1809,8 +1806,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.canvas.sam_open=False
 
         if self.currentSAMQThread is not None:
-            self.sendCurrentImgPath.disconnect(self.currentSAMQThread.worker.reset_img_info)
-            self.canvas.sam_send_points_signal.disconnect(self.currentSAMQThread.worker.get_mask)
+            self.canvas.sam_send_points_signal.disconnect(self.currentSAMQThread.worker.sam_work)
+            self.canvas.send_img_path_signal.disconnect(self.currentSAMQThread.worker.reset_img_info)
 
             self.currentSAMQThread.worker.send_message_signal.disconnect(self.status)
             self.currentSAMQThread.worker.send_mask_signal.disconnect(self.canvas.setMaskShape)

@@ -36,6 +36,7 @@
 <file alias="strings">resources/strings/strings.properties</file>
 <file alias="strings-zh-TW">resources/strings/strings-zh-TW.properties</file>
 <file alias="strings-zh-CN">resources/strings/strings-zh-CN.properties</file>
-<file alias="cursor1">resources/icons/click.png</file>
+<file alias="cursor1">resources/icons/click1.png</file>
+<file alias="cursor2">resources/icons/click2.png</file>
 </qresource>
 </RCC>

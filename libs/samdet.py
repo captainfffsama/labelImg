@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-04-24 18:21:59
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-04-26 17:48:59
+@LastEditTime: 2023-04-28 10:17:39
 @FilePath: /labelImg/libs/samdet.py
 @Description:
 '''
@@ -22,7 +22,7 @@ from sam_grpc import SAMClient
 
 class SAMWorker(QObject):
     send_message_signal = pyqtSignal(str, int)
-    send_mask_signal = pyqtSignal(np.ndarray)
+    send_mask_signal = pyqtSignal(str,np.ndarray)
 
     def __init__(self, host, port):
         super().__init__()
@@ -37,7 +37,7 @@ class SAMWorker(QObject):
     def print_thread(self):
         print("worker thread:", QThread.currentThread())
 
-    def reset_img_info(self, img_path):
+    def reset_img_info(self, img_path) -> bool:
         try:
             self.mask_cache = None
             self.current_img_path = img_path
@@ -52,45 +52,53 @@ class SAMWorker(QObject):
                 self.current_img_embedding = self.client.SAMGetImageEmbeddingUseCache(
                     current_img)
             self.send_message_signal.emit("获取图片嵌入成功", 5000)
+            return True
         except:
             self.current_img_path = None
             self.current_img_embedding = None
             self.mask_cache = None
             self.send_message_signal.emit("获取图片嵌入失败", 5000)
+            return False
 
-    def get_mask(self, points, point_type, use_cache=True):
+    def _sam_get_mask(self,img_path,points, point_type, use_cache=True):
+        try:
+            with self.client:
+                if use_cache:
+                    mask_cache = self.mask_cache
+                else:
+                    mask_cache = None
+
+                points=points*self.img_scale
+                points=points.astype(int)
+                masks, scores, logits, self.mask_cache = self.client.SAMPredictUseCache(
+                    self.current_img_embedding[-1],
+                    points,
+                    point_type,
+                    mask_input=mask_cache,
+                    multimask_output=False)
+
+                print(masks.shape)
+                if masks is not None:
+                    # cv2.imwrite("mask.png",masks.squeeze()*255)
+                    if self.img_scale !=1:
+                        m_t=cv2.resize(masks.astype(np.uint8).squeeze()*255,tuple(self.img_ori_hw))
+                        m_t[m_t>=128]=255
+                        m_t[m_t<128]=0
+                        masks=m_t.astype(bool)[None,:,:]
+                    self.send_mask_signal.emit(img_path,masks)
+                else:
+                    self.send_message_signal.emit("SAM失败,可能服务端有问题", 5000)
+        except Exception as e:
+            self.send_message_signal.emit("SAM失败,可能服务端有问题", 5000)
+
+    def sam_work(self,img_path, points, point_type, use_cache=True):
         if self.current_img_embedding is not None:
-            try:
-                with self.client:
-                    if use_cache:
-                        mask_cache = self.mask_cache
-                    else:
-                        mask_cache = None
+            if img_path==self.current_img_path:
+                self._sam_get_mask(img_path,points,point_type,use_cache)
+                return
+        if self.reset_img_info(img_path):
+            self._sam_get_mask(img_path,points,point_type,use_cache)
 
-                    points=points*self.img_scale
-                    points=points.astype(int)
-                    masks, scores, logits, self.mask_cache = self.client.SAMPredictUseCache(
-                        self.current_img_embedding[-1],
-                        points,
-                        point_type,
-                        mask_input=mask_cache,
-                        multimask_output=False)
-
-                    print(masks.shape)
-                    if masks is not None:
-                        # cv2.imwrite("mask.png",masks.squeeze()*255)
-                        if self.img_scale !=1:
-                            m_t=cv2.resize(masks.astype(np.uint8).squeeze()*255,tuple(self.img_ori_hw))
-                            m_t[m_t>=128]=255
-                            m_t[m_t<128]=0
-                            masks=m_t.astype(bool)[None,:,:]
-                        self.send_mask_signal.emit(masks)
-                    else:
-                        self.send_message_signal.emit("SAM失败,可能服务端有问题", 5000)
-            except Exception as e:
-                self.send_message_signal.emit("SAM失败,可能服务端有问题", 5000)
-        else:
-            self.send_message_signal.emit("获取图片嵌入失败", 5000)
 
 
 class SAMThread(QThread):

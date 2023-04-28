@@ -30,7 +30,8 @@ class Canvas(QWidget):
     drawingPolygon = pyqtSignal(bool)
 
     send_message_signal = pyqtSignal(str, int)
-    sam_send_points_signal = pyqtSignal(np.ndarray, np.ndarray, bool)
+    send_img_path_signal=pyqtSignal(str)
+    sam_send_points_signal = pyqtSignal(str,np.ndarray, np.ndarray, bool)
 
     CREATE, EDIT = list(range(2))
 
@@ -77,6 +78,8 @@ class Canvas(QWidget):
         self.lastMouseTime = QDateTime()
 
         self.CURSOR_C1=QCursor(QPixmap(":/cursor1"))
+        self.CURSOR_C2=QCursor(QPixmap(":/cursor2"))
+        self.current_img_path=None
 
     def reset_sam_model(self):
         self._pause_sam_model = True
@@ -89,10 +92,11 @@ class Canvas(QWidget):
     def recover_sam_model(self):
         self._pause_sam_model = False
         self.setEditing(False)
+        self.send_img_path_signal.emit(self.current_img_path)
         self.send_message_signal.emit("开启sam模式", 5000)
         self.sam_mask = MaskShape()
         self.sam_points = []
-        self.overrideCursor(self.CURSOR_C1)
+        self.overrideCursor(self.CURSOR_C2)
 
     @property
     def sam_points_array(self):
@@ -160,7 +164,7 @@ class Canvas(QWidget):
                             int(self.lastMousePos.y())
                         ]])
                         labels = np.array([1])
-                        self.sam_send_points_signal.emit(points, labels, True)
+                        self.sam_send_points_signal.emit(self.current_img_path,points, labels, True)
                 self.repaint()
                 self.mouse_timer.start(1000)
                 return
@@ -301,7 +305,7 @@ class Canvas(QWidget):
                     posx = int(pos.x())
                     posy = int(pos.y())
                     self.sam_points.append(PointShape(QPoint(posx, posy), 1))
-                    self.sam_send_points_signal.emit(*self.sam_points_array,
+                    self.sam_send_points_signal.emit(self.current_img_path,*self.sam_points_array,
                                                      False)
                     self.repaint()
             else:
@@ -319,7 +323,7 @@ class Canvas(QWidget):
                     posx = int(pos.x())
                     posy = int(pos.y())
                     self.sam_points.append(PointShape(QPoint(posx, posy), 0))
-                    self.sam_send_points_signal.emit(*self.sam_points_array,
+                    self.sam_send_points_signal.emit(self.current_img_path,*self.sam_points_array,
                                                      False)
                     self.repaint()
 
@@ -470,8 +474,9 @@ class Canvas(QWidget):
 
         return x, y, False
 
-    def setMaskShape(self, mask):
-        self.sam_mask.setScaleMask(self.scale, mask)
+    def setMaskShape(self,img_path,mask):
+        if img_path == self.current_img_path:
+            self.sam_mask.setScaleMask(self.scale, mask)
 
     def boundedMoveVertex(self, pos):
         index, shape = self.hVertex, self.hShape
