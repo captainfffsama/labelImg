@@ -251,6 +251,8 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         self.canvas.setDrawingShapeToSquare(
             settings.get(SETTING_DRAW_SQUARE, False))
 
+        self.canvas.installEventFilter(self)
+
         scroll = QScrollArea()
         scroll.setWidget(self.canvas)
         scroll.setWidgetResizable(True)
@@ -2088,6 +2090,24 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
     def toogleDrawSquare(self):
         self.canvas.setDrawingShapeToSquare(self.drawSquaresOption.isChecked())
+
+    def eventFilter(self,watched,event):
+        if event.type() == QEvent.MouseButtonPress:
+            self.mousePressEvent(event)
+        return super().eventFilter(watched,event)
+
+    def mousePressEvent(self, ev):
+        print("haha")
+        print(ev.button())
+        if ev.button() == Qt.BackButton:
+            self.openNextImg()
+            ev.accept()
+        elif ev.button() == Qt.ForwardButton:
+            self.openPrevImg()
+            ev.accept()
+        else:
+            ev.ignore()
+
 
 
 def inverted(color):
