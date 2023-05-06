@@ -2097,8 +2097,6 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
         return super().eventFilter(watched,event)
 
     def mousePressEvent(self, ev):
-        print("haha")
-        print(ev.button())
         if ev.button() == Qt.BackButton:
             self.openNextImg()
             ev.accept()
