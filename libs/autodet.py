@@ -10,7 +10,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, QByteArray
 from PyQt5.QtGui import QImage
 import grpc
 from .proto import dldetection_pb2
-from .proto.dldetection_pb2_grpc import AiServiceStub
+from .proto import dldetection_pb2_grpc
 
 
 
@@ -47,7 +47,7 @@ class AutoDetThread(QThread):
         error_info=None
         try:
             with grpc.insecure_channel(self._host) as channel:
-                stub = AiServiceStub(channel)
+                stub = dldetection_pb2_grpc.AiServiceStub(channel)
                 img_file = open(self._img_path, 'rb')  # 二进制打开图片文件
                 img_b64encode = base64.b64encode(img_file.read())  # base64编码
                 img_file.close()  # 文件关闭
