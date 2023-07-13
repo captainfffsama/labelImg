@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-04-24 18:21:59
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-04-28 11:59:27
+@LastEditTime: 2023-07-13 11:57:55
 @FilePath: /labelImg/libs/samdet.py
 @Description:
 '''
@@ -42,7 +42,7 @@ class SAMWorker(QObject):
             try:
                 self.mask_cache = None
                 self.current_img_path = img_path
-                current_img = cv2.imread(img_path)
+                current_img = cv2.imread(img_path,cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)
                 self.img_ori_hw=current_img.shape[:2][::-1]
                 if max(current_img.shape)>self.img_max_size:
                     self.img_scale=self.img_max_size/max(current_img.shape)

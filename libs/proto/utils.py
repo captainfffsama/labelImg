@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-04-10 19:09:31
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-04-10 19:11:39
+@LastEditTime: 2023-07-13 11:59:11
 @FilePath: /labelImg/libs/proto/utils.py
 @Description:
 '''
@@ -21,11 +21,11 @@ def get_img(img_info):
         if not os.path.exists(img_info):
             return None
         else:
-            return cv2.imread(img_info)  #ignore
+            return cv2.imread(img_info,cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)  #ignore
     else:
         img_str = base64.b64decode(img_info)
         img_np = np.fromstring(img_str, np.uint8)
-        return cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+        return cv2.imdecode(img_np, cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)
 
 
 def np2tensor_proto(np_ndarray: np.ndarray):
