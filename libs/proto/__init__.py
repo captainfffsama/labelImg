@@ -25,4 +25,4 @@ else:
 
 from . import utils
 
-__all__=["dldetection_pb2_grpc","dldetection_pb2"]
+__all__=["dldetection_pb2_grpc","dldetection_pb2","utils"]

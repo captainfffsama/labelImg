@@ -7,6 +7,7 @@
 @FilePath: /labelImg/libs/proto/utils.py
 @Description:
 '''
+
 import os
 import base64
 
@@ -15,13 +16,16 @@ import cv2
 
 from . import dldetection_pb2
 
+def cv2imread(img_path,flag=cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION):
+    img=cv2.imdecode(np.fromfile(img_path,dtype=np.uint8),flag)
+    return img
 
 def get_img(img_info):
     if os.path.isfile(img_info):
         if not os.path.exists(img_info):
             return None
         else:
-            return cv2.imread(img_info,cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)  #ignore
+            return cv2imread(img_info,cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)  #ignore
     else:
         img_str = base64.b64decode(img_info)
         img_np = np.fromstring(img_str, np.uint8)

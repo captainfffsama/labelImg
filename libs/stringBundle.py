@@ -35,6 +35,7 @@ class StringBundle:
             except:
                 print('Invalid locale')
                 localeStr = 'en'
+        localeStr="zh-CN"
 
         return StringBundle(cls.__create_key, localeStr)
 
