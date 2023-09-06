@@ -11,6 +11,11 @@ pyinstaller --hidden-import=pyqt5 --hidden-import=lxml --hidden-import=grpcio --
 ```
 
 # 新增功能说明
+### 2023/09/06
+1. 修改了txt记录功能的行为.
+   - 现在若打开数据集的方式使用文件夹打开,那么记录的txt存放在数据集文件夹下的special_txt中.
+   - 若打开数据集的方式是使用图片列表txt的方式打开,那么记录的txt存放在图片列表txt同目录下的special_txt中
+2. 修正了软件版本号的显示,现在点击 `Help->信息`, `App version` 将显示正确的版本号,比如当前是 `2.2.0c`
 ### 2023/04/26
 结合[SAM](https://github.com/facebookresearch/segment-anything)(需要[sam_rpc](https://github.com/captainfffsama/sam_grpc)),船新标注体验,是兄弟就来标图!
 ![SAM模式演示](https://github.com/captainfffsama/MarkDownPics/blob/master/%E5%85%B6%E4%BB%96%E5%9C%B0%E6%96%B9%E5%9B%BE%E7%89%87/new_function.gif?raw=true)

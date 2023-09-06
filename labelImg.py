@@ -46,6 +46,7 @@ from libs.hashableQListWidgetItem import HashableQListWidgetItem
 from libs.autodet import AutoDetThread, AutoDetCfgDialog
 from libs.prompt_det import PromptDetCfgDialog, PromptDetThread
 from libs.samdet import SAMModeCfgDialog, SAMThread
+from libs import __version__
 
 __appname__ = 'labelImg'
 
@@ -730,7 +731,11 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
         if self.txtPath is not None:
             absTxtPath = os.path.dirname(self.txtPath)
-            saveTxtPath = os.path.join(absTxtPath, self.saveTxtName)
+            special_txt_path = os.path.join(absTxtPath,
+                                            'special_txt')
+            if not os.path.exists(special_txt_path):
+                os.makedirs(special_txt_path)
+            saveTxtPath = os.path.join(special_txt_path, self.saveTxtName)
             #NOTE: 这里txtData可能是有None的
             txtData: Set[str] = set()
             if os.path.exists(saveTxtPath):
@@ -938,7 +943,7 @@ class MainWindow(QMainWindow, WindowMixin, UtilsFuncMixin):
 
     def showInfoDialog(self):
         msg = u'Name:{0} \nApp Version:{1} \n{2} '.format(
-            __appname__, 'chiebot', sys.version_info)
+            __appname__, __version__, sys.version_info)
         QMessageBox.information(self, u'Information', msg)
 
     def createShape(self):
